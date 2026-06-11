@@ -19,7 +19,7 @@ function showToast(msg, err=false) {
 
 // ─── LOGIN ───────────────────────────────────────────────────
 let ranking = [], predicciones = {}, clasificados = []
-let filtroFecha = 'hoy', filtroGrupo = 'todos'
+let filtroFecha = 'hoy', filtroGrupo = 'todos'  // unused, kept for safety
 
 async function initLogin() {
   const select = document.getElementById('login-select')
@@ -148,7 +148,6 @@ async function loadAll() {
   try { await Promise.all([loadRanking(), loadPredicciones(), loadClasificados()]) } catch(e) { console.error(e) }
   buildGrupos()
   buildEquipoSelect()
-  renderPartidos()
   renderMyBracket()
 }
 
@@ -322,9 +321,7 @@ function renderClasificadosView() {
   ).join('')
 }
 
-// ─── PARTIDOS ────────────────────────────────────────────────
-const PARTIDOS = [
-  {id:1,fecha:'11 Jun',hora:'15:00',local:'México',visita:'Sudáfrica',grupo:'A',sede:'Ciudad de México',estado:'pendiente'},
+// ─── CLASIFICADOS ────────────────────────────────────────────  {id:1,fecha:'11 Jun',hora:'15:00',local:'México',visita:'Sudáfrica',grupo:'A',sede:'Ciudad de México',estado:'pendiente'},
   {id:2,fecha:'11 Jun',hora:'22:00',local:'Corea del Sur',visita:'Rep. Checa',grupo:'A',sede:'Guadalajara',estado:'pendiente'},
   {id:3,fecha:'12 Jun',hora:'15:00',local:'Canadá',visita:'Bosnia y Herzegovina',grupo:'B',sede:'Toronto',estado:'pendiente'},
   {id:4,fecha:'12 Jun',hora:'21:00',local:'Estados Unidos',visita:'Paraguay',grupo:'D',sede:'Los Ángeles',estado:'pendiente'},
@@ -427,62 +424,6 @@ const PARTIDOS = [
   {id:100,fecha:'19 Jul',hora:'14:00',local:'Finalista 1',visita:'Finalista 2',grupo:'FIN',sede:'MetLife Stadium, NJ',estado:'pendiente'},
 ]
 
-const FASE_LABELS = {'16':'Dieciseisavos','8':'Octavos','4':'Cuartos','SF':'Semifinales','3P':'3er Lugar','FIN':'⚽ FINAL'}
-
-function renderPartidos() {
-  let filtrados = PARTIDOS.filter(p => {
-    const esGrupo = !['16','8','4','SF','3P','FIN'].includes(p.grupo)
-    if (filtroFecha==='hoy')    return p.fecha==='11 Jun'
-    if (filtroFecha==='manana') return p.fecha==='12 Jun'
-    if (filtroFecha==='grupos') return esGrupo
-    if (filtroFecha==='elim')   return !esGrupo
-    return true
-  })
-  if (filtroGrupo!=='todos') filtrados = filtrados.filter(p=>p.grupo===filtroGrupo)
-
-  const porFecha = {}
-  filtrados.forEach(p => { if(!porFecha[p.fecha]) porFecha[p.fecha]=[]; porFecha[p.fecha].push(p) })
-
-  const container = document.getElementById('partidos-container')
-  if (!filtrados.length) { container.innerHTML='<div class="empty">No hay partidos para este filtro.</div>'; return }
-
-  container.innerHTML = Object.entries(porFecha).map(([fecha,partidos]) => {
-    const rows = partidos.map(p => {
-      const g = GRUPOS.find(g=>g.id===p.grupo)
-      const gc = g?.color||'#2a2a4a'
-      const label = FASE_LABELS[p.grupo]||`Grupo ${p.grupo}`
-      let scoreHtml = ''
-      if (p.estado==='en_vivo') scoreHtml=`<div class="score-box live-score"><span class="score-n">${p.gl??0}</span><span class="score-sep">-</span><span class="score-n">${p.gv??0}</span></div>`
-      else if (p.estado==='finalizado') scoreHtml=`<div class="score-box fin-score"><span class="score-n">${p.gl??0}</span><span class="score-sep">-</span><span class="score-n">${p.gv??0}</span></div>`
-      else scoreHtml=`<div class="score-box vs-box"><span style="color:#8892b0;font-size:11px;font-weight:600">VS</span></div>`
-      const estadoBadge = p.estado==='en_vivo'
-        ?`<span class="live-badge"><span class="live-dot"></span>EN VIVO</span>`
-        :p.estado==='finalizado'
-          ?`<span style="color:#6b7a9f;font-size:10px;letter-spacing:.5px">FINAL</span>`
-          :`<span style="color:#8892b0;font-size:11px">${p.hora}</span>`
-      return `<div class="match-row">
-        <div class="match-group-badge" style="background:${gc}20;border-color:${gc}40;color:${gc}">${label}</div>
-        <div class="match-teams">
-          <span class="team-name r">${p.local}</span>
-          ${scoreHtml}
-          <span class="team-name">${p.visita}</span>
-        </div>
-        <div class="match-right">${estadoBadge}<div style="font-size:10px;color:#6b7a9f;margin-top:2px">${p.sede}</div></div>
-      </div>`
-    }).join('')
-    return `<div class="date-block"><div class="date-header">${fecha}</div>${rows}</div>`
-  }).join('')
-}
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    btn.closest('.filter-group').querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'))
-    btn.classList.add('active')
-    if (btn.dataset.fecha!==undefined) filtroFecha=btn.dataset.fecha
-    if (btn.dataset.grupo!==undefined) filtroGrupo=btn.dataset.grupo
-    renderPartidos()
-  })
-})
 
 // ─── ADMIN ───────────────────────────────────────────────────
 function buildEquipoSelect() {
