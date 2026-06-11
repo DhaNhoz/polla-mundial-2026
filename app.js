@@ -21,47 +21,30 @@ function showToast(msg, err=false) {
 let ranking = [], predicciones = {}, clasificados = []
 let filtroFecha = 'hoy', filtroGrupo = 'todos'  // unused, kept for safety
 
-async function initLogin() {
+// ─── PARTICIPANTES (hardcoded - agregar cuando lleguen nuevos Excel) ─
+const PARTICIPANTES_LISTA = [
+  { id:12, nombre:'Daniel Rios' },
+  { id:13, nombre:'Johanna Flores' },
+  { id:14, nombre:'Equipo Series' },
+]
+
+function initLogin() {
   const select   = document.getElementById('login-select')
   const loginBtn = document.getElementById('login-btn')
 
-  // ── Mostrar opciones inmediatamente sin esperar red ───────
-  function buildSelect(participantes) {
-    select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
-    participantes.forEach((p, i) => {
-      const opt = document.createElement('option')
-      opt.value = p.id; opt.dataset.nombre = p.nombre; opt.dataset.idx = i
-      opt.textContent = p.nombre
-      select.appendChild(opt)
-    })
-    if (participantes.length) {
-      const sep = document.createElement('option'); sep.disabled = true; sep.textContent = '──────────'
-      select.appendChild(sep)
-    }
-    const admin = document.createElement('option')
-    admin.value = '__admin__'; admin.textContent = '⚙ Administrador'
-    select.appendChild(admin)
-    select.disabled = false
-  }
+  // Poblar select inmediatamente sin red
+  select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
+  PARTICIPANTES_LISTA.forEach((p, i) => {
+    const opt = document.createElement('option')
+    opt.value = p.id; opt.dataset.nombre = p.nombre; opt.dataset.idx = i
+    opt.textContent = p.nombre
+    select.appendChild(opt)
+  })
+  const sep = document.createElement('option'); sep.disabled = true; sep.textContent = '──────────'
+  select.appendChild(sep)
+  const admin = document.createElement('option'); admin.value = '__admin__'; admin.textContent = '⚙ Administrador'
+  select.appendChild(admin)
 
-  // Mostrar lista inicial vacía con solo Admin (respuesta inmediata)
-  buildSelect([])
-
-  // Cargar desde Supabase en background
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/polla_participantes?select=id,nombre&order=nombre`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
-    )
-    const data = await res.json()
-    if (Array.isArray(data) && data.length > 0) {
-      const prevVal = select.value
-      buildSelect(data)
-      if (prevVal) select.value = prevVal
-    }
-  } catch(e) { console.error('Login load error:', e) }
-
-  // ── Event listeners ───────────────────────────────────────
   select.addEventListener('change', () => {
     const v = select.value
     loginBtn.disabled = !v
@@ -80,14 +63,19 @@ async function initLogin() {
     const errEl = document.getElementById('login-error')
     const opt   = select.options[select.selectedIndex]
 
+    if (!select.value) { errEl.textContent = 'Selecciona tu nombre'; return }
+
     if (select.value === '__admin__') {
       if (pin !== ADMIN_PIN) { errEl.textContent = 'PIN incorrecto'; return }
       currentUser = { nombre:'Administrador', isAdmin:true, id:null, color:'#4ade80' }
     } else {
-      const nombre = opt.dataset.nombre || opt.textContent
-      const id     = parseInt(select.value)
-      const idx    = parseInt(opt.dataset.idx ?? 0)
-      currentUser  = { nombre, isAdmin:false, id, color: AVATAR_COLORS[idx % AVATAR_COLORS.length] }
+      const idx = parseInt(opt.dataset.idx ?? 0)
+      currentUser = {
+        nombre:  opt.dataset.nombre || opt.textContent,
+        isAdmin: false,
+        id:      parseInt(select.value),
+        color:   AVATAR_COLORS[idx % AVATAR_COLORS.length]
+      }
     }
     sessionStorage.setItem('polla_user', JSON.stringify(currentUser))
     enterApp()
