@@ -13,246 +13,303 @@
       --gold:#c9a227; --gold-l:#e8c64a; --white:#ffffff;
       --text:#c8d0e8; --muted:#8892b0; --green:#4ade80; --red:#f87171;
     }
-    html { scroll-behavior: smooth; }
-    body { background:var(--dark); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; font-size:14px; }
+    html { scroll-behavior:smooth; }
+    body { background:var(--dark);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;font-size:14px; }
 
-    /* TOPBAR */
-    .topbar { position:sticky;top:0;z-index:100;background:var(--mid);border-bottom:1px solid #c9a22730;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:54px; }
-    .logo { display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--gold);letter-spacing:-.3px; }
-    .logo-dot { width:8px;height:8px;background:var(--gold);border-radius:50%; }
+    /* ── LOGIN ── */
+    .login-wrap {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(ellipse at 50% 0%, #1a2040 0%, var(--dark) 70%);
+      padding:20px;
+    }
+    .login-card {
+      background:var(--mid); border:1px solid var(--border); border-radius:20px;
+      padding:40px 36px; width:100%; max-width:400px; text-align:center;
+    }
+    .login-trophy { font-size:56px; margin-bottom:16px; display:block; }
+    .login-title { font-size:22px; font-weight:700; color:var(--white); margin-bottom:6px; }
+    .login-sub { font-size:13px; color:var(--muted); margin-bottom:32px; }
+    .login-label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; text-align:left; }
+    .login-select {
+      width:100%; padding:12px 14px; border-radius:10px;
+      border:1px solid var(--border); background:var(--card);
+      color:var(--text); font-size:14px; font-family:inherit;
+      outline:none; margin-bottom:16px; cursor:pointer;
+    }
+    .login-select:focus { border-color:var(--gold); }
+    .login-pin-wrap { display:none; margin-bottom:16px; }
+    .login-pin {
+      width:100%; padding:12px 14px; border-radius:10px;
+      border:1px solid var(--border); background:var(--card);
+      color:var(--text); font-size:18px; font-family:inherit;
+      outline:none; letter-spacing:4px; text-align:center;
+    }
+    .login-pin:focus { border-color:var(--gold); }
+    .login-btn {
+      width:100%; padding:13px; border-radius:10px;
+      background:var(--gold); border:none; color:#080c18;
+      font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
+      transition:background .15s; margin-bottom:12px;
+    }
+    .login-btn:hover { background:var(--gold-l); }
+    .login-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .login-error { font-size:12px; color:var(--red); min-height:18px; }
+    .login-hint { font-size:11px; color:var(--muted); margin-top:16px; }
+    .login-divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position:sticky;top:0;z-index:100;background:var(--mid);border-bottom:1px solid #c9a22730;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px; }
+    .logo { display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--gold); }
+    .logo-dot { width:7px;height:7px;background:var(--gold);border-radius:50%; }
     .nav { display:flex;gap:4px; }
-    .nav-btn { padding:7px 16px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit; }
+    .nav-btn { padding:6px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit; }
     .nav-btn:hover { color:var(--text);background:#10142a; }
     .nav-btn.active { background:var(--card);color:var(--gold); }
-    .admin-btn { padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s; }
-    .admin-btn:hover { border-color:var(--gold);color:var(--gold); }
+    .user-chip {
+      display:flex;align-items:center;gap:8px;background:var(--card);
+      border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;
+      font-size:12px;color:var(--text);transition:all .15s;
+    }
+    .user-chip:hover { border-color:var(--gold); }
+    .user-avatar { width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
+    .admin-chip { background:#1a2a00;border-color:#4ade8040;color:var(--green); }
 
-    /* HERO */
-    .hero { background:linear-gradient(180deg,var(--mid) 0%,var(--dark) 100%);border-bottom:1px solid var(--border);padding:28px 24px 24px;text-align:center; }
-    .hero-eyebrow { font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px; }
-    .hero-title { font-size:30px;font-weight:700;color:var(--white);margin-bottom:4px; }
+    /* ── HERO ── */
+    .hero { background:linear-gradient(180deg,var(--mid) 0%,var(--dark) 100%);border-bottom:1px solid var(--border);padding:24px 20px 20px;text-align:center; }
+    .hero-eyebrow { font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px; }
+    .hero-title { font-size:28px;font-weight:700;color:var(--white);margin-bottom:4px; }
     .hero-sub { font-size:13px;color:var(--muted); }
 
-    /* STATS */
-    .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 24px 0; }
-    .stat-card { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center; }
-    .stat-val { font-size:22px;font-weight:700;color:var(--gold); }
-    .stat-lbl { font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px; }
+    /* ── STATS ── */
+    .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 20px 0; }
+    .stat-card { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center; }
+    .stat-val { font-size:20px;font-weight:700;color:var(--gold); }
+    .stat-lbl { font-size:11px;color:var(--muted);margin-top:2px; }
 
-    /* PAGES */
+    /* ── PAGES ── */
     .page { display:none; } .page.active { display:block; }
-    .section { padding:20px 24px; }
-    .section-title { font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:10px; }
+    .section { padding:18px 20px; }
+    .section-title { font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:flex;align-items:center;gap:10px; }
     .section-title::after { content:'';flex:1;height:1px;background:var(--border); }
 
-    /* RANKING */
+    /* ── RANKING ── */
     .table-wrap { background:var(--mid);border:1px solid var(--border);border-radius:12px;overflow:hidden; }
     .rtable { width:100%;border-collapse:collapse; }
-    .rtable th { font-size:11px;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;font-weight:400; }
-    .rtable td { padding:11px 14px;border-bottom:1px solid #10142a; }
+    .rtable th { font-size:11px;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;font-weight:400; }
+    .rtable td { padding:10px 12px;border-bottom:1px solid #10142a; }
     .rtable tr:last-child td { border-bottom:none; }
     .rtable tbody tr:hover td { background:rgba(255,255,255,.02); }
-    .pos-badge { width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700; }
-    .pos-1 { background:#3a2a00;color:#c9a227; } .pos-2 { background:#2a2a2a;color:#c0c0c0; }
-    .pos-3 { background:#2a1800;color:#cd7f32; } .pos-n { background:var(--card);color:var(--muted); }
-    .avatar { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0; }
-    .name-cell { display:flex;align-items:center;gap:10px; }
-    .bar-wrap { display:flex;align-items:center;gap:8px; }
-    .bar-bg { flex:1;height:4px;background:var(--card);border-radius:2px;min-width:60px; }
+    .rtable tbody tr.me td { background:#1a2a00 !important; }
+    .rtable tbody tr.me td:first-child { border-left:3px solid var(--green); }
+    .pos-badge { width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700; }
+    .pos-1{background:#3a2a00;color:#c9a227;} .pos-2{background:#2a2a2a;color:#c0c0c0;}
+    .pos-3{background:#2a1800;color:#cd7f32;} .pos-n{background:var(--card);color:var(--muted);}
+    .avatar { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0; }
+    .name-cell { display:flex;align-items:center;gap:9px; }
+    .bar-wrap { display:flex;align-items:center;gap:6px; }
+    .bar-bg { flex:1;height:4px;background:var(--card);border-radius:2px;min-width:50px; }
     .bar-fill { height:4px;border-radius:2px;background:var(--gold); }
-    .pts-val { font-size:14px;font-weight:700;color:var(--white);min-width:32px;text-align:right; }
+    .pts-val { font-size:14px;font-weight:700;color:var(--white);min-width:28px;text-align:right; }
 
-    /* DETAIL CARDS */
-    .detail-card { background:var(--mid);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px; }
-    .chips { display:flex;gap:6px;flex-wrap:wrap;margin-top:6px; }
-    .chip { padding:3px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);color:var(--muted);background:var(--card); }
+    /* ── DETAIL CARDS ── */
+    .detail-card { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px; }
+    .detail-card.me { border-color:#4ade8040;background:#0d1a0d; }
+    .chips { display:flex;gap:5px;flex-wrap:wrap;margin-top:5px; }
+    .chip { padding:3px 9px;border-radius:20px;font-size:11px;border:1px solid var(--border);color:var(--muted);background:var(--card); }
     .chip.hit { border-color:#2d6a2d;color:var(--green);background:#0d1a0d; }
     .chip.pending { border-color:#3a2a00;color:var(--gold);background:#1a1500; }
 
-    /* GRUPOS */
-    .grupos-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
-    .grupo-card { border-radius:10px;overflow:hidden;border:1px solid var(--border); }
-    .grupo-header { padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#fff; }
-    .grupo-team { padding:6px 12px;font-size:12px;color:var(--text);border-top:1px solid rgba(255,255,255,.06); }
+    /* ── MI BRACKET ── */
+    .my-bracket-hero { background:linear-gradient(135deg,#0d1a0d,#0d1128);border:1px solid #4ade8030;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px; }
+    .fase-block { background:var(--mid);border:1px solid var(--border);border-radius:10px;margin-bottom:7px;overflow:hidden; }
+    .fase-header { padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:1.5px; }
+    .fase-teams { padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px; }
+    .team-pill { background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px; }
 
-    /* BRACKET */
-    .tab-bar { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px; }
-    .tab { padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:#10142a;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s; }
-    .tab:hover { color:var(--text); } .tab.active { border-color:var(--gold);color:var(--gold);background:var(--card); }
-    .fase-block { background:var(--mid);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden; }
-    .fase-header { padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:1.5px; }
-    .fase-teams { padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px; }
-    .team-pill { background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text); }
-
-    /* ── PARTIDOS PROFESIONAL ── */
-    .filters-wrap { padding:16px 24px 0; }
-    .filter-group { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px; }
+    /* ── PARTIDOS ── */
+    .filters-wrap { padding:14px 20px 0; }
+    .filter-group { display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px; }
     .filter-label { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;align-self:center;min-width:44px; }
-    .filter-btn { padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap; }
-    .filter-btn:hover { color:var(--text);border-color:#8892b0; }
+    .filter-btn { padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap; }
+    .filter-btn:hover { color:var(--text); }
     .filter-btn.active { background:var(--gold);border-color:var(--gold);color:#080c18;font-weight:700; }
-
-    .date-block { margin:0 24px 20px; }
+    .date-block { margin:0 20px 16px; }
     .date-header { font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;padding:12px 0 8px;display:flex;align-items:center;gap:10px; }
     .date-header::after { content:'';flex:1;height:1px;background:var(--border); }
-
-    .match-row { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:6px;display:grid;grid-template-columns:120px 1fr 110px;align-items:center;gap:12px;transition:background .15s; }
+    .match-row { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:5px;display:grid;grid-template-columns:110px 1fr 105px;align-items:center;gap:10px;transition:background .15s; }
     .match-row:hover { background:#0f1330;border-color:#2a3060; }
-
     .match-group-badge { font-size:10px;font-weight:700;letter-spacing:.5px;padding:4px 8px;border-radius:6px;border:1px solid;text-align:center;white-space:nowrap; }
-
-    .match-teams { display:flex;align-items:center;gap:12px; }
+    .match-teams { display:flex;align-items:center;gap:10px; }
     .team-name { font-size:13px;color:var(--text);flex:1; }
     .team-name.r { text-align:right; }
-
-    .score-box { display:flex;align-items:center;gap:6px;border-radius:8px;padding:5px 12px;min-width:60px;justify-content:center; }
+    .score-box { display:flex;align-items:center;gap:5px;border-radius:8px;padding:5px 10px;min-width:56px;justify-content:center; }
     .vs-box { background:var(--card);border:1px solid var(--border); }
     .live-score { background:#2a0000;border:1px solid #f8717140; }
     .fin-score { background:var(--card);border:1px solid #2a3060; }
     .score-n { font-size:16px;font-weight:700;color:#fff;min-width:14px;text-align:center; }
     .score-sep { color:var(--muted);font-size:12px; }
-
     .match-right { text-align:right; }
     .live-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--red); }
     .live-dot { width:6px;height:6px;background:var(--red);border-radius:50%;animation:blink 1s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-    /* CLASIFICADOS */
-    .clasificados-view-wrap { padding:0 24px 20px; }
+    /* ── GRUPOS ── */
+    .grupos-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
+    .grupo-card { border-radius:10px;overflow:hidden;border:1px solid var(--border); }
+    .grupo-header { padding:7px 11px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#fff; }
+    .grupo-team { padding:5px 11px;font-size:12px;color:var(--text);border-top:1px solid rgba(255,255,255,.06); }
 
-    /* ADMIN MODAL */
+    /* ── ADMIN MODAL ── */
     .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200; }
     .modal-overlay.open { display:flex; }
     .modal { background:var(--mid);border:1px solid var(--border);border-radius:16px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto; }
     .modal h2 { font-size:16px;font-weight:700;color:var(--white);margin-bottom:4px; }
     .modal p { font-size:12px;color:var(--muted);margin-bottom:20px; }
-    .form-group { margin-bottom:14px; }
+    .form-group { margin-bottom:12px; }
     .form-group label { display:block;font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px; }
-    .form-group select,.form-group input { width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit;outline:none; }
-    .form-group select:focus,.form-group input:focus { border-color:var(--gold); }
+    .form-group select { width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit;outline:none; }
+    .form-group select:focus { border-color:var(--gold); }
     .btn-gold { width:100%;padding:10px;border-radius:8px;background:var(--gold);border:none;color:#0a0e1a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s; }
     .btn-gold:hover { background:var(--gold-l); }
     .btn-close { float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1; }
-    .clasificados-list { margin-top:16px; }
-    .clasificado-item { display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--card);border-radius:6px;margin-bottom:6px;font-size:12px; }
+    .clasificado-item { display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--card);border-radius:6px;margin-bottom:5px;font-size:12px; }
     .btn-del { background:none;border:none;color:#f87171;cursor:pointer;font-size:16px;line-height:1; }
 
-    /* MISC */
-    .spinner { display:flex;justify-content:center;padding:40px; }
-    .spin { width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite; }
+    .spinner { display:flex;justify-content:center;padding:36px; }
+    .spin { width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite; }
     @keyframes spin { to{transform:rotate(360deg)} }
-    .empty { text-align:center;padding:40px 20px;color:var(--muted);font-size:13px; }
+    .empty { text-align:center;padding:36px 20px;color:var(--muted);font-size:13px; }
     .toast { position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--green);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--green);z-index:300;transform:translateY(100px);opacity:0;transition:all .3s; }
     .toast.show { transform:translateY(0);opacity:1; }
 
     @media (max-width:640px) {
       .stats-row { grid-template-columns:repeat(2,1fr); }
       .grupos-grid { grid-template-columns:repeat(2,1fr); }
-      .nav-btn span { display:none; }
       .hero-title { font-size:22px; }
-      .match-row { grid-template-columns:80px 1fr 80px;gap:8px; }
-      .match-group-badge { font-size:9px;padding:3px 5px; }
+      .match-row { grid-template-columns:80px 1fr 80px;gap:7px; }
+      .nav-btn span { display:none; }
     }
   </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo"><div class="logo-dot"></div>Polla Mundial 2026</div>
-  <div class="nav">
-    <button class="nav-btn active" data-page="ranking">🏆 <span>Ranking</span></button>
-    <button class="nav-btn" data-page="bracket">📋 <span>Bracket</span></button>
-    <button class="nav-btn" data-page="partidos">⚽ <span>Partidos</span></button>
-  </div>
-  <button class="admin-btn" id="btn-admin">⚙ Admin</button>
-</div>
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <span class="login-trophy">🏆</span>
+    <div class="login-title">Polla Mundial 2026</div>
+    <div class="login-sub">Oficina Mazal · $200.000 en juego</div>
 
-<div class="hero">
-  <div class="hero-eyebrow">USA · México · Canadá — 11 Jun al 19 Jul 2026</div>
-  <div class="hero-title">Polla de la Oficina</div>
-  <div class="hero-sub">Cuota $20.000 · 10 participantes</div>
-</div>
+    <label class="login-label">¿Quién eres?</label>
+    <select class="login-select" id="login-select">
+      <option value="">— Selecciona tu nombre —</option>
+    </select>
 
-<div class="stats-row">
-  <div class="stat-card"><div class="stat-val" id="s-part">—</div><div class="stat-lbl">Participantes</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-pozo">$200k</div><div class="stat-lbl">Pozo total</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-leader">—</div><div class="stat-lbl">Líder actual</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-max">—</div><div class="stat-lbl">Puntos líder</div></div>
-</div>
-
-<!-- RANKING -->
-<div class="page active" id="page-ranking">
-  <div class="section">
-    <div class="section-title">Tabla de posiciones</div>
-    <div class="table-wrap">
-      <table class="rtable">
-        <thead><tr>
-          <th style="width:44px">#</th><th>Participante</th>
-          <th style="width:80px;text-align:center">Grupos</th>
-          <th style="width:80px;text-align:center">Cuartos</th>
-          <th style="width:80px;text-align:center">Semis</th>
-          <th style="width:80px;text-align:center">Final</th>
-          <th style="width:80px;text-align:center">Campeón</th>
-          <th style="width:100px;text-align:right">Total</th>
-        </tr></thead>
-        <tbody id="ranking-body"><tr><td colspan="8"><div class="spinner"><div class="spin"></div></div></td></tr></tbody>
-      </table>
+    <div class="login-pin-wrap" id="pin-wrap">
+      <label class="login-label">PIN de acceso (4 dígitos)</label>
+      <input class="login-pin" id="login-pin" type="password" maxlength="4" placeholder="• • • •" inputmode="numeric" />
     </div>
-  </div>
-  <div class="section" style="padding-top:0">
-    <div class="section-title">Detalle aciertos</div>
-    <div id="detail-cards"><div class="spinner"><div class="spin"></div></div></div>
+
+    <button class="login-btn" id="login-btn" disabled>Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+
+    <hr class="login-divider" />
+    <div class="login-hint">¿Admin? Selecciona "Administrador" e ingresa el PIN.</div>
   </div>
 </div>
 
-<!-- BRACKET -->
-<div class="page" id="page-bracket">
-  <div class="section">
-    <div class="section-title">Los 12 grupos</div>
-    <div class="grupos-grid" id="grupos-grid"></div>
-  </div>
-  <div class="section" style="padding-top:0">
-    <div class="section-title">Predicciones por participante</div>
-    <div class="tab-bar" id="bracket-tabs"></div>
-    <div id="bracket-detail"></div>
-  </div>
-</div>
-
-<!-- PARTIDOS -->
-<div class="page" id="page-partidos">
-
-  <div class="filters-wrap">
-    <div class="filter-group">
-      <span class="filter-label">Fecha</span>
-      <button class="filter-btn active" data-fecha="hoy">Hoy</button>
-      <button class="filter-btn" data-fecha="manana">Mañana</button>
-      <button class="filter-btn" data-fecha="grupos">Fase Grupos</button>
-      <button class="filter-btn" data-fecha="elim">Eliminatoria</button>
-      <button class="filter-btn" data-fecha="todos">Todos</button>
+<!-- ── APP ── -->
+<div id="app-screen" style="display:none">
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>Polla Mundial 2026</div>
+    <div class="nav">
+      <button class="nav-btn active" data-page="ranking">🏆 <span>Ranking</span></button>
+      <button class="nav-btn" data-page="bracket">📋 <span>Mi Bracket</span></button>
+      <button class="nav-btn" data-page="partidos">⚽ <span>Partidos</span></button>
     </div>
-    <div class="filter-group">
-      <span class="filter-label">Grupo</span>
-      <button class="filter-btn active" data-grupo="todos">Todos</button>
-      <button class="filter-btn" data-grupo="A">A</button>
-      <button class="filter-btn" data-grupo="B">B</button>
-      <button class="filter-btn" data-grupo="C">C</button>
-      <button class="filter-btn" data-grupo="D">D</button>
-      <button class="filter-btn" data-grupo="E">E</button>
-      <button class="filter-btn" data-grupo="F">F</button>
-      <button class="filter-btn" data-grupo="G">G</button>
-      <button class="filter-btn" data-grupo="H">H</button>
-      <button class="filter-btn" data-grupo="I">I</button>
-      <button class="filter-btn" data-grupo="J">J</button>
-      <button class="filter-btn" data-grupo="K">K</button>
-      <button class="filter-btn" data-grupo="L">L</button>
+    <div class="user-chip" id="user-chip" onclick="logout()">
+      <div class="user-avatar" id="chip-avatar"></div>
+      <span id="chip-name"></span>
+      <span style="color:var(--muted);font-size:10px">✕</span>
     </div>
   </div>
 
-  <div style="padding-top:16px" id="partidos-container"></div>
+  <div class="hero">
+    <div class="hero-eyebrow">USA · México · Canadá — 11 Jun al 19 Jul 2026</div>
+    <div class="hero-title">Polla de la Oficina</div>
+    <div class="hero-sub">Cuota $20.000 · 10 participantes</div>
+  </div>
 
-  <div class="section" style="padding-top:0">
-    <div class="section-title">Clasificados confirmados</div>
-    <div id="clasificados-view"></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="s-part">—</div><div class="stat-lbl">Participantes</div></div>
+    <div class="stat-card"><div class="stat-val">$200k</div><div class="stat-lbl">Pozo total</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-leader">—</div><div class="stat-lbl">Líder actual</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-max">—</div><div class="stat-lbl">Puntos líder</div></div>
+  </div>
+
+  <!-- RANKING -->
+  <div class="page active" id="page-ranking">
+    <div class="section">
+      <div class="section-title">Tabla de posiciones</div>
+      <div class="table-wrap">
+        <table class="rtable">
+          <thead><tr>
+            <th style="width:40px">#</th><th>Participante</th>
+            <th style="width:70px;text-align:center">Grupos</th>
+            <th style="width:70px;text-align:center">Cuartos</th>
+            <th style="width:70px;text-align:center">Semis</th>
+            <th style="width:70px;text-align:center">Final</th>
+            <th style="width:80px;text-align:center">Campeón</th>
+            <th style="width:90px;text-align:right">Total</th>
+          </tr></thead>
+          <tbody id="ranking-body"><tr><td colspan="8"><div class="spinner"><div class="spin"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section" style="padding-top:0">
+      <div class="section-title">Detalle aciertos</div>
+      <div id="detail-cards"><div class="spinner"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- BRACKET -->
+  <div class="page" id="page-bracket">
+    <div class="section">
+      <div id="my-bracket-content"></div>
+    </div>
+    <div class="section" style="padding-top:0">
+      <div class="section-title">Los 12 grupos</div>
+      <div class="grupos-grid" id="grupos-grid"></div>
+    </div>
+  </div>
+
+  <!-- PARTIDOS -->
+  <div class="page" id="page-partidos">
+    <div class="filters-wrap">
+      <div class="filter-group">
+        <span class="filter-label">Fecha</span>
+        <button class="filter-btn active" data-fecha="hoy">Hoy</button>
+        <button class="filter-btn" data-fecha="manana">Mañana</button>
+        <button class="filter-btn" data-fecha="grupos">Fase Grupos</button>
+        <button class="filter-btn" data-fecha="elim">Eliminatoria</button>
+        <button class="filter-btn" data-fecha="todos">Todos</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Grupo</span>
+        <button class="filter-btn active" data-grupo="todos">Todos</button>
+        <button class="filter-btn" data-grupo="A">A</button><button class="filter-btn" data-grupo="B">B</button>
+        <button class="filter-btn" data-grupo="C">C</button><button class="filter-btn" data-grupo="D">D</button>
+        <button class="filter-btn" data-grupo="E">E</button><button class="filter-btn" data-grupo="F">F</button>
+        <button class="filter-btn" data-grupo="G">G</button><button class="filter-btn" data-grupo="H">H</button>
+        <button class="filter-btn" data-grupo="I">I</button><button class="filter-btn" data-grupo="J">J</button>
+        <button class="filter-btn" data-grupo="K">K</button><button class="filter-btn" data-grupo="L">L</button>
+      </div>
+    </div>
+    <div style="padding-top:14px" id="partidos-container"></div>
+    <div class="section" style="padding-top:0">
+      <div class="section-title">Clasificados confirmados</div>
+      <div id="clasificados-view"></div>
+    </div>
   </div>
 </div>
 
@@ -277,7 +334,7 @@
       <select id="admin-equipo"><option value="">— Selecciona equipo —</option></select>
     </div>
     <button class="btn-gold" id="btn-agregar">Agregar clasificado</button>
-    <div class="clasificados-list" id="clasificados-list"></div>
+    <div id="clasificados-list" style="margin-top:16px"></div>
   </div>
 </div>
 
