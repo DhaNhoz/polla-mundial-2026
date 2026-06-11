@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polla Mundial 2026</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --dark:    #080c18;
+      --mid:     #0d1128;
+      --card:    #1a2040;
+      --border:  #1e2540;
+      --gold:    #c9a227;
+      --gold-l:  #e8c64a;
+      --white:   #ffffff;
+      --text:    #c8d0e8;
+      --muted:   #8892b0;
+      --green:   #4ade80;
+      --red:     #f87171;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--mid);
+      border-bottom: 1px solid #c9a22730;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 54px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--gold); }
+    .logo-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; }
+    .nav { display: flex; gap: 4px; }
+    .nav-btn {
+      padding: 7px 16px; border-radius: 8px; border: none;
+      background: transparent; color: var(--muted); font-size: 13px;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .nav-btn:hover { color: var(--text); background: #10142a; }
+    .nav-btn.active { background: var(--card); color: var(--gold); }
+    .admin-btn {
+      padding: 6px 14px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-size: 12px; cursor: pointer;
+      font-family: inherit; transition: all .15s;
+    }
+    .admin-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(180deg, var(--mid) 0%, var(--dark) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px; text-align: center;
+    }
+    .hero-eyebrow { font-size: 11px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+    .hero-title { font-size: 30px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .hero-sub { font-size: 13px; color: var(--muted); }
+
+    /* ── STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px 24px 0; }
+    .stat-card { background: var(--mid); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; text-align: center; }
+    .stat-val { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.5px; }
+
+    /* ── PAGES ── */
+    .page { display: none; }
+    .page.active { display: block; }
+    .section { padding: 20px 24px; }
+    .section-title {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── RANKING TABLE ── */
+    .table-wrap { background: var(--mid); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .rtable { width: 100%; border-collapse: collapse; }
+    .rtable th {
+      font-size: 11px; color: var(--muted); text-align: left;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 400;
+    }
+    .rtable td { padding: 11px 14px; border-bottom: 1px solid #10142a; }
+    .rtable tr:last-child td { border-bottom: none; }
+    .rtable tbody tr { transition: background .1s; }
+    .rtable tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+    .pos-badge { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+    .pos-1 { background: #3a2a00; color: #c9a227; }
+    .pos-2 { background: #2a2a2a; color: #c0c0c0; }
+    .pos-3 { background: #2a1800; color: #cd7f32; }
+    .pos-n { background: var(--card); color: var(--muted); }
+
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .name-cell { display: flex; align-items: center; gap: 10px; }
+
+    .bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .bar-bg { flex: 1; height: 4px; background: var(--card); border-radius: 2px; min-width: 60px; }
+    .bar-fill { height: 4px; border-radius: 2px; background: var(--gold); }
+    .pts-val { font-size: 14px; font-weight: 700; color: var(--white); min-width: 32px; text-align: right; }
+
+    /* ── DETAIL CARDS ── */
+    .detail-card {
+      background: var(--mid); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .chip { padding: 3px 10px; border-radius: 20px; font-size: 11px; border: 1px solid var(--border); color: var(--muted); background: var(--card); }
+    .chip.hit { border-color: #2d6a2d; color: var(--green); background: #0d1a0d; }
+    .chip.pending { border-color: #3a2a00; color: var(--gold); background: #1a1500; }
+
+    /* ── GRUPOS ── */
+    .grupos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grupo-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .grupo-header { padding: 8px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #fff; }
+    .grupo-team { padding: 6px 12px; font-size: 12px; color: var(--text); border-top: 1px solid rgba(255,255,255,.06); }
+
+    /* ── BRACKET TABS ── */
+    .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tab { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: #10142a; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all .15s; }
+    .tab:hover { color: var(--text); }
+    .tab.active { border-color: var(--gold); color: var(--gold); background: var(--card); }
+
+    .fase-block { background: var(--mid); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+    .fase-header { padding: 9px 14px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; }
+    .fase-teams { padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .team-pill { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text); }
+
+    /* ── PARTIDOS ── */
+    .match-card { background: var(--mid); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+    .match-teams { flex: 1; display: flex; align-items: center; gap: 10px; }
+    .team-name { font-size: 13px; color: var(--text); flex: 1; }
+    .team-name.r { text-align: right; }
+    .score-box { display: flex; align-items: center; gap: 6px; background: var(--card); border-radius: 6px; padding: 4px 10px; }
+    .score-n { font-size: 16px; font-weight: 700; color: #fff; min-width: 16px; text-align: center; }
+    .score-sep { color: var(--muted); }
+    .match-meta { font-size: 11px; color: var(--muted); min-width: 80px; text-align: right; }
+    .live-dot { display: inline-block; width: 7px; height: 7px; background: var(--red); border-radius: 50%; margin-right: 4px; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .group-pill { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 700; color: #fff; min-width: 56px; text-align: center; }
+
+    /* ── ADMIN MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.7);
+      display: none; align-items: center; justify-content: center; z-index: 200;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--mid); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px; width: 480px; max-width: 95vw; max-height: 85vh; overflow-y: auto;
+    }
+    .modal h2 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .modal p { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .form-group select, .form-group input {
+      width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); font-size: 13px; font-family: inherit; outline: none;
+    }
+    .form-group select:focus, .form-group input:focus { border-color: var(--gold); }
+    .btn-gold {
+      width: 100%; padding: 10px; border-radius: 8px;
+      background: var(--gold); border: none; color: #0a0e1a;
+      font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-gold:hover { background: var(--gold-l); }
+    .btn-close { float: right; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; }
+    .clasificados-list { margin-top: 16px; }
+    .clasificado-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: var(--card); border-radius: 6px; margin-bottom: 6px; font-size: 12px; }
+    .btn-del { background: none; border: none; color: #f87171; cursor: pointer; font-size: 16px; line-height: 1; }
+
+    /* ── LOADING / EMPTY ── */
+    .spinner { display: flex; justify-content: center; padding: 40px; }
+    .spin { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--green); border-radius: 10px; padding: 12px 18px; font-size: 13px; color: var(--green); z-index: 300; transform: translateY(100px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 640px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .grupos-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-btn span { display: none; }
+      .hero-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Polla Mundial 2026
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" data-page="ranking">🏆 <span>Ranking</span></button>
+    <button class="nav-btn" data-page="bracket">📋 <span>Bracket</span></button>
+    <button class="nav-btn" data-page="partidos">⚽ <span>Partidos</span></button>
+  </div>
+  <button class="admin-btn" id="btn-admin">⚙ Admin</button>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">USA · México · Canadá — 11 Jun al 19 Jul 2026</div>
+  <div class="hero-title">Polla de la Oficina</div>
+  <div class="hero-sub">Cuota $20.000 · 10 participantes</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-val" id="s-part">—</div><div class="stat-lbl">Participantes</div></div>
+  <div class="stat-card"><div class="stat-val" id="s-pozo">$200k</div><div class="stat-lbl">Pozo total</div></div>
+  <div class="stat-card"><div class="stat-val" id="s-leader">—</div><div class="stat-lbl">Líder actual</div></div>
+  <div class="stat-card"><div class="stat-val" id="s-max">—</div><div class="stat-lbl">Puntos líder</div></div>
+</div>
+
+<!-- RANKING -->
+<div class="page active" id="page-ranking">
+  <div class="section">
+    <div class="section-title">Tabla de posiciones</div>
+    <div class="table-wrap">
+      <table class="rtable">
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>Participante</th>
+            <th style="width:110px">Grupos</th>
+            <th style="width:80px">Cuartos</th>
+            <th style="width:80px">Semis</th>
+            <th style="width:80px">Final</th>
+            <th style="width:80px">Campeón</th>
+            <th style="width:100px;text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-body">
+          <tr><td colspan="8"><div class="spinner"><div class="spin"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Detalle aciertos</div>
+    <div id="detail-cards"><div class="spinner"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- BRACKET -->
+<div class="page" id="page-bracket">
+  <div class="section">
+    <div class="section-title">Los 12 grupos</div>
+    <div class="grupos-grid" id="grupos-grid"></div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Predicciones por participante</div>
+    <div class="tab-bar" id="bracket-tabs"></div>
+    <div id="bracket-detail"></div>
+  </div>
+</div>
+
+<!-- PARTIDOS -->
+<div class="page" id="page-partidos">
+  <div class="section">
+    <div class="section-title">En vivo</div>
+    <div id="live-matches"><div class="empty">Sin partidos en curso ahora mismo</div></div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Próximos partidos</div>
+    <div id="upcoming-matches"></div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Clasificados confirmados</div>
+    <div id="clasificados-view"></div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+    <button class="btn-close" id="close-modal">×</button>
+    <h2>⚙ Panel Admin</h2>
+    <p>Carga los equipos que clasifican en cada fase. Los puntos se calculan automáticamente.</p>
+
+    <div class="form-group">
+      <label>Fase</label>
+      <select id="admin-fase">
+        <option value="octavos">Octavos de Final (1 pt c/u)</option>
+        <option value="cuartos">Cuartos de Final (2 pts c/u)</option>
+        <option value="semis">Semifinales (3 pts c/u)</option>
+        <option value="final">Final — Finalistas (5 pts c/u)</option>
+        <option value="campeon">Campeón (10 pts)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Equipo clasificado</label>
+      <select id="admin-equipo">
+        <option value="">— Selecciona equipo —</option>
+      </select>
+    </div>
+    <button class="btn-gold" id="btn-agregar">Agregar clasificado</button>
+
+    <div class="clasificados-list" id="clasificados-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
