@@ -4,11 +4,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY)
 
 // ─── AUTH ────────────────────────────────────────────────────
-// PIN del admin (puedes cambiar esto)
-const ADMIN_PIN = '2026'
-// PINs de participantes: { nombre: '1234' }
-// Por ahora todos usan el mismo PIN, el admin puede tener el suyo
-const PARTICIPANT_PIN = '2026'
+const ADMIN_PIN = '2026'  // Solo el admin necesita PIN
 
 let currentUser = null  // { nombre, isAdmin, id, color }
 
@@ -66,10 +62,11 @@ async function initLogin() {
   select.addEventListener('change', () => {
     const v = select.value
     document.getElementById('login-btn').disabled = !v
-    document.getElementById('pin-wrap').style.display = v ? 'block' : 'none'
+    // PIN solo para admin
+    document.getElementById('pin-wrap').style.display = v === '__admin__' ? 'block' : 'none'
     document.getElementById('login-error').textContent = ''
     document.getElementById('login-pin').value = ''
-    if (v) document.getElementById('login-pin').focus()
+    if (v === '__admin__') document.getElementById('login-pin').focus()
   })
 
   document.getElementById('login-pin').addEventListener('keydown', e => {
@@ -77,20 +74,20 @@ async function initLogin() {
   })
 
   document.getElementById('login-btn').addEventListener('click', () => {
-    const sel  = document.getElementById('login-select')
-    const pin  = document.getElementById('login-pin').value.trim()
+    const sel   = document.getElementById('login-select')
+    const pin   = document.getElementById('login-pin').value.trim()
     const errEl = document.getElementById('login-error')
 
     if (sel.value === '__admin__') {
       if (pin !== ADMIN_PIN) { errEl.textContent = 'PIN incorrecto'; return }
       currentUser = { nombre:'Administrador', isAdmin:true, id:null, color:'#4ade80' }
     } else {
-      if (pin !== PARTICIPANT_PIN) { errEl.textContent = 'PIN incorrecto'; return }
-      const opt = sel.options[sel.selectedIndex]
+      // Participantes entran directo, sin PIN
+      const opt    = sel.options[sel.selectedIndex]
       const nombre = opt.dataset.nombre || opt.textContent
-      const id = parseInt(sel.value)
-      const idx = (data||[]).findIndex(p=>p.id===id)
-      currentUser = { nombre, isAdmin:false, id, color:AVATAR_COLORS[idx%AVATAR_COLORS.length] }
+      const id     = parseInt(sel.value)
+      const idx    = (data||[]).findIndex(p => p.id === id)
+      currentUser  = { nombre, isAdmin:false, id, color:AVATAR_COLORS[idx % AVATAR_COLORS.length] }
     }
 
     // Guardar sesión
