@@ -26,27 +26,42 @@ let ranking = [], predicciones = {}, clasificados = []
 let filtroFecha = 'hoy', filtroGrupo = 'todos'
 
 async function initLogin() {
-  // Cargar participantes desde Supabase
-  const { data } = await sb.from('polla_participantes').select('id,nombre').order('nombre')
   const select = document.getElementById('login-select')
 
-  // Opción admin
-  const adminOpt = document.createElement('option')
-  adminOpt.value = '__admin__'; adminOpt.textContent = '⚙ Administrador'
-  select.appendChild(adminOpt)
+  // Mostrar estado cargando
+  select.innerHTML = '<option value="">Cargando participantes...</option>'
+  select.disabled = true
 
-  ;(data||[]).forEach(p => {
+  // Cargar participantes desde Supabase
+  let data = []
+  try {
+    const res = await sb.from('polla_participantes').select('id,nombre').order('nombre')
+    data = res.data || []
+  } catch(e) {
+    console.error('Error cargando participantes:', e)
+  }
+
+  // Reconstruir opciones
+  select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
+  select.disabled = false
+
+  // Participantes primero
+  data.forEach(p => {
     const opt = document.createElement('option')
     opt.value = p.id; opt.dataset.nombre = p.nombre; opt.textContent = p.nombre
     select.appendChild(opt)
   })
 
-  // Si no hay participantes, mostrar placeholder
-  if (!data?.length) {
-    const ph = document.createElement('option')
-    ph.disabled = true; ph.textContent = '— Aún no hay participantes —'
-    select.insertBefore(ph, adminOpt)
+  // Separador y admin al final
+  if (data.length > 0) {
+    const sep = document.createElement('option')
+    sep.disabled = true; sep.textContent = '──────────'
+    select.appendChild(sep)
   }
+
+  const adminOpt = document.createElement('option')
+  adminOpt.value = '__admin__'; adminOpt.textContent = '⚙ Administrador'
+  select.appendChild(adminOpt)
 
   select.addEventListener('change', () => {
     const v = select.value
@@ -516,24 +531,30 @@ sb.channel('polla-live')
   .subscribe()
 
 // ─── ARRANCAR ────────────────────────────────────────────────
-// Revisar sesión guardada
-const savedUser = sessionStorage.getItem('polla_user')
-if (savedUser) {
-  currentUser = JSON.parse(savedUser)
-  document.getElementById('login-screen').style.display = 'none'
-  document.getElementById('app-screen').style.display = 'block'
-  const av = document.getElementById('chip-avatar')
-  document.getElementById('chip-name').textContent = currentUser.nombre
-  av.textContent = initials(currentUser.nombre)
-  av.style.background = currentUser.color+'30'; av.style.color = currentUser.color
-  if (currentUser.isAdmin) {
-    document.getElementById('user-chip').classList.add('admin-chip')
-    const adminBtn = document.createElement('button')
-    adminBtn.className='admin-btn'; adminBtn.textContent='⚙ Panel'; adminBtn.style.marginLeft='8px'
-    adminBtn.addEventListener('click',()=>{document.getElementById('admin-modal').classList.add('open');renderAdminList()})
-    document.getElementById('user-chip').parentNode.insertBefore(adminBtn, document.getElementById('user-chip'))
+;(async function start() {
+  const savedUser = sessionStorage.getItem('polla_user')
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser)
+      document.getElementById('login-screen').style.display = 'none'
+      document.getElementById('app-screen').style.display = 'block'
+      const av = document.getElementById('chip-avatar')
+      document.getElementById('chip-name').textContent = currentUser.nombre
+      av.textContent = initials(currentUser.nombre)
+      av.style.background = currentUser.color+'30'; av.style.color = currentUser.color
+      if (currentUser.isAdmin) {
+        document.getElementById('user-chip').classList.add('admin-chip')
+        const adminBtn = document.createElement('button')
+        adminBtn.className='admin-btn'; adminBtn.textContent='⚙ Panel'; adminBtn.style.marginLeft='8px'
+        adminBtn.addEventListener('click',()=>{document.getElementById('admin-modal').classList.add('open');renderAdminList()})
+        document.getElementById('user-chip').parentNode.insertBefore(adminBtn, document.getElementById('user-chip'))
+      }
+      await loadAll()
+    } catch(e) {
+      sessionStorage.removeItem('polla_user')
+      await initLogin()
+    }
+  } else {
+    await initLogin()
   }
-  loadAll()
-} else {
-  initLogin()
-}
+})()
