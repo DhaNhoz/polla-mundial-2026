@@ -261,7 +261,17 @@ function renderMyBracket() {
           <div class="fase-header" style="background:${FASE_COLORS_MAP[f.key]};color:${f.key==='campeon'?'#0A0E1A':'#e8eaf6'}">${f.label.toUpperCase()} — ${f.pts} pto${f.pts>1?'s':''} c/u</div>
           <div class="fase-teams">${pills}</div>
         </div>`
-      }).join('')
+      }).join('') +
+      // Goleador bonus
+      `<div class="fase-block">
+        <div class="fase-header" style="background:#2D6A2D;color:#e8eaf6">GOLEADOR DEL TORNEO — +5 pts (bonus)</div>
+        <div class="fase-teams">
+          ${myRanking?.goleador
+            ? `<span class="team-pill" style="border-color:#2d6a2d;color:#4ade80">⚽ ${myRanking.goleador}</span>`
+            : '<span style="font-size:12px;color:#8892b0;font-style:italic">Sin goleador cargado</span>'
+          }
+        </div>
+      </div>`
     }`
 }
 
