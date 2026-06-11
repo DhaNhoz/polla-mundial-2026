@@ -22,51 +22,49 @@ let ranking = [], predicciones = {}, clasificados = []
 let filtroFecha = 'hoy', filtroGrupo = 'todos'  // unused, kept for safety
 
 async function initLogin() {
-  const select = document.getElementById('login-select')
-  select.innerHTML = '<option value="">Cargando...</option>'
-  select.disabled = true
+  const select   = document.getElementById('login-select')
+  const loginBtn = document.getElementById('login-btn')
 
-  // Fetch directo — más robusto que el cliente JS en este contexto
-  let participantes = []
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/polla_participantes?select=id,nombre&order=nombre`, {
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`
-      }
+  // ── Mostrar opciones inmediatamente sin esperar red ───────
+  function buildSelect(participantes) {
+    select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
+    participantes.forEach((p, i) => {
+      const opt = document.createElement('option')
+      opt.value = p.id; opt.dataset.nombre = p.nombre; opt.dataset.idx = i
+      opt.textContent = p.nombre
+      select.appendChild(opt)
     })
-    participantes = await res.json()
-    if (!Array.isArray(participantes)) participantes = []
-  } catch(e) {
-    console.error('Error cargando participantes:', e)
-    participantes = []
+    if (participantes.length) {
+      const sep = document.createElement('option'); sep.disabled = true; sep.textContent = '──────────'
+      select.appendChild(sep)
+    }
+    const admin = document.createElement('option')
+    admin.value = '__admin__'; admin.textContent = '⚙ Administrador'
+    select.appendChild(admin)
+    select.disabled = false
   }
 
-  // Rebuild select
-  select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
-  select.disabled = false
+  // Mostrar lista inicial vacía con solo Admin (respuesta inmediata)
+  buildSelect([])
 
-  participantes.forEach((p, i) => {
-    const opt = document.createElement('option')
-    opt.value = p.id
-    opt.dataset.nombre = p.nombre
-    opt.dataset.idx = i
-    opt.textContent = p.nombre
-    select.appendChild(opt)
-  })
+  // Cargar desde Supabase en background
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/polla_participantes?select=id,nombre&order=nombre`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    )
+    const data = await res.json()
+    if (Array.isArray(data) && data.length > 0) {
+      const prevVal = select.value
+      buildSelect(data)
+      if (prevVal) select.value = prevVal
+    }
+  } catch(e) { console.error('Login load error:', e) }
 
-  if (participantes.length > 0) {
-    const sep = document.createElement('option'); sep.disabled = true; sep.textContent = '──────────'
-    select.appendChild(sep)
-  }
-
-  const adminOpt = document.createElement('option')
-  adminOpt.value = '__admin__'; adminOpt.textContent = '⚙ Administrador'
-  select.appendChild(adminOpt)
-
+  // ── Event listeners ───────────────────────────────────────
   select.addEventListener('change', () => {
     const v = select.value
-    document.getElementById('login-btn').disabled = !v
+    loginBtn.disabled = !v
     document.getElementById('pin-wrap').style.display = v === '__admin__' ? 'block' : 'none'
     document.getElementById('login-error').textContent = ''
     document.getElementById('login-pin').value = ''
@@ -74,25 +72,23 @@ async function initLogin() {
   })
 
   document.getElementById('login-pin').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('login-btn').click()
+    if (e.key === 'Enter') loginBtn.click()
   })
 
-  document.getElementById('login-btn').addEventListener('click', () => {
-    const sel    = document.getElementById('login-select')
-    const pin    = document.getElementById('login-pin').value.trim()
-    const errEl  = document.getElementById('login-error')
+  loginBtn.addEventListener('click', () => {
+    const pin   = document.getElementById('login-pin').value.trim()
+    const errEl = document.getElementById('login-error')
+    const opt   = select.options[select.selectedIndex]
 
-    if (sel.value === '__admin__') {
+    if (select.value === '__admin__') {
       if (pin !== ADMIN_PIN) { errEl.textContent = 'PIN incorrecto'; return }
       currentUser = { nombre:'Administrador', isAdmin:true, id:null, color:'#4ade80' }
     } else {
-      const opt   = sel.options[sel.selectedIndex]
       const nombre = opt.dataset.nombre || opt.textContent
-      const id    = parseInt(sel.value)
-      const idx   = parseInt(opt.dataset.idx ?? 0)
-      currentUser = { nombre, isAdmin:false, id, color: AVATAR_COLORS[idx % AVATAR_COLORS.length] }
+      const id     = parseInt(select.value)
+      const idx    = parseInt(opt.dataset.idx ?? 0)
+      currentUser  = { nombre, isAdmin:false, id, color: AVATAR_COLORS[idx % AVATAR_COLORS.length] }
     }
-
     sessionStorage.setItem('polla_user', JSON.stringify(currentUser))
     enterApp()
   })
