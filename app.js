@@ -4,7 +4,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY)
 
 // ─── AUTH ────────────────────────────────────────────────────
-const ADMIN_PIN = '2026'  // Solo el admin necesita PIN
+const ADMIN_PIN = '1225'  // Solo el admin necesita PIN
 
 let currentUser = null  // { nombre, isAdmin, id, color }
 
