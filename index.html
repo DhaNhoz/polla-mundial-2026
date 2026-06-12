@@ -86,6 +86,16 @@
     .stat-val { font-size:20px;font-weight:700;color:var(--gold); }
     .stat-lbl { font-size:11px;color:var(--muted);margin-top:2px; }
 
+    /* ── PREMIOS ── */
+    .premios-row { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 20px 0; }
+    .premio { background:linear-gradient(135deg,#1a1500,var(--mid));border:1px solid #c9a22730;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:11px; }
+    .premio-medal { font-size:24px;line-height:1;flex-shrink:0; }
+    .premio-pos { font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px; }
+    .premio-monto { font-size:18px;font-weight:700;color:var(--gold);margin-top:1px; }
+    .premio-2 { border-color:#c0c0c030; }
+    .premio-3 { border-color:#cd7f3230; }
+    @media (max-width:640px){ .premios-row { grid-template-columns:1fr; } }
+
     /* ── PAGES ── */
     .page { display:none; } .page.active { display:block; }
     .section { padding:18px 20px; }
@@ -198,7 +208,7 @@
   <div class="login-card">
     <span class="login-trophy">🏆</span>
     <div class="login-title">Polla Mundial 2026</div>
-    <div class="login-sub">$200.000 en juego</div>
+    <div class="login-sub">Oficina Mazal · $200.000 en juego</div>
 
     <label class="login-label">¿Quién eres?</label>
     <select class="login-select" id="login-select">
@@ -213,6 +223,8 @@
     <button class="login-btn" id="login-btn">Ingresar</button>
     <div class="login-error" id="login-error"></div>
 
+    <hr class="login-divider" />
+    <div class="login-hint">¿Admin? Selecciona "Administrador" e ingresa el PIN.</div>
   </div>
 </div>
 
@@ -234,7 +246,7 @@
 
   <div class="hero">
     <div class="hero-eyebrow">USA · México · Canadá — 11 Jun al 19 Jul 2026</div>
-    <div class="hero-title">Polla Mundial 2026</div>
+    <div class="hero-title">Polla de la Oficina</div>
     <div class="hero-sub">Cuota $20.000 · 10 participantes</div>
   </div>
 
@@ -243,6 +255,12 @@
     <div class="stat-card"><div class="stat-val">$200k</div><div class="stat-lbl">Pozo total</div></div>
     <div class="stat-card"><div class="stat-val" id="s-leader">—</div><div class="stat-lbl">Líder actual</div></div>
     <div class="stat-card"><div class="stat-val" id="s-max">—</div><div class="stat-lbl">Puntos líder</div></div>
+  </div>
+
+  <div class="premios-row">
+    <div class="premio premio-1"><span class="premio-medal">🥇</span><div><div class="premio-pos">1er lugar</div><div class="premio-monto">$120.000</div></div></div>
+    <div class="premio premio-2"><span class="premio-medal">🥈</span><div><div class="premio-pos">2do lugar</div><div class="premio-monto">$50.000</div></div></div>
+    <div class="premio premio-3"><span class="premio-medal">🥉</span><div><div class="premio-pos">3er lugar</div><div class="premio-monto">$30.000</div></div></div>
   </div>
 
   <!-- RANKING -->
