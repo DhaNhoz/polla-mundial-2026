@@ -185,10 +185,8 @@ async function loadAll() {
     loadPredicciones(),
     loadClasificados(),
   ])
-  // Solo renderizar después de que los 3 estén listos
-  buildGrupos()
-  buildEquipoSelect()
-  renderMyBracket()  // depende de predicciones + ranking + clasificados
+  // Renderizar después de que los 3 estén listos
+  renderMyBracket()
 }
 
 // ─── RANKING ─────────────────────────────────────────────────
@@ -456,9 +454,12 @@ sb.channel('polla-live')
   .subscribe()
 
 // ─── ARRANCAR ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  // Login siempre se inicializa inmediatamente (sync, no depende de red)
+// El script está al final del body, el DOM ya está listo
+;(async function start() {
+  // Cosas que no dependen de red — corren inmediatamente
   initLogin()
+  buildGrupos()
+  buildEquipoSelect()
 
   // Si hay sesión guardada, entrar directo
   const saved = sessionStorage.getItem('polla_user')
@@ -471,4 +472,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentUser = null
     }
   }
-})
+})()
