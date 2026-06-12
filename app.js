@@ -147,7 +147,12 @@ async function enterApp() {
   document.getElementById('app-screen').style.display = 'block'
   setupAppShell()
 
-  // 2. Cargar datos en paralelo y esperar TODOS antes de renderizar
+  // 2. Mostrar loading en bracket mientras cargan los datos
+  document.getElementById('my-bracket-content').innerHTML = `
+    <div class="section-title">Mi Bracket</div>
+    <div class="spinner"><div class="spin"></div></div>`
+
+  // 3. Cargar datos en paralelo y esperar TODOS antes de renderizar
   await loadAll()
 }
 
@@ -221,7 +226,7 @@ function renderRanking() {
     const pct   = Math.round((p.puntos_total / max) * 100)
     const color = AVATAR_COLORS[i % AVATAR_COLORS.length]
     const posC  = i===0?'pos-1':i===1?'pos-2':i===2?'pos-3':'pos-n'
-    const isMe  = currentUser && !currentUser.isAdmin && p.id === currentUser.id
+    const isMe  = currentUser && !currentUser.isAdmin && p.id === parseInt(currentUser.id)
     const cell  = k => `<td style="text-align:center;color:#8892b0;font-size:12px">${p['pts_'+k]??0}</td>`
     return `<tr class="${isMe?'me':''}">
       <td><span class="pos-badge ${posC}">${p.posicion}</span></td>
@@ -252,7 +257,7 @@ function renderDetailCards() {
   ]
   el.innerHTML = ranking.map((p, i) => {
     const color = AVATAR_COLORS[i % AVATAR_COLORS.length]
-    const isMe  = currentUser && !currentUser.isAdmin && p.id === currentUser.id
+    const isMe  = currentUser && !currentUser.isAdmin && p.id === parseInt(currentUser.id)
     const chips = FASES_DEF.map(f =>
       `<span class="chip ${(p['pts_'+f.key]??0)>0?'hit':'pending'}">${f.label} ${p['pts_'+f.key]??0}/${f.max*f.pts}</span>`
     ).join('')
@@ -292,14 +297,14 @@ function renderMyBracket() {
     return
   }
 
-  const picks     = predicciones[currentUser.id] || []
+  const picks     = predicciones[parseInt(currentUser.id)] || []
   const byFase    = {}
   picks.forEach(p => { if (!byFase[p.fase]) byFase[p.fase]=[]; byFase[p.fase].push(p.equipo) })
 
   const clasSet = {}
   clasificados.forEach(c => { if (!clasSet[c.fase]) clasSet[c.fase]=new Set(); clasSet[c.fase].add(c.equipo) })
 
-  const myRanking = ranking.find(r => r.id === currentUser.id)
+  const myRanking = ranking.find(r => r.id === parseInt(currentUser.id))
 
   const heroHtml = myRanking ? `
     <div class="my-bracket-hero">
@@ -466,6 +471,7 @@ sb.channel('polla-live')
   if (saved) {
     try {
       currentUser = JSON.parse(saved)
+      if (currentUser.id) currentUser.id = parseInt(currentUser.id)  // garantizar que es number
       await enterApp()
     } catch(e) {
       sessionStorage.removeItem('polla_user')
