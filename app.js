@@ -395,6 +395,7 @@ async function loadClasificados() {
 
 function renderClasificadosView() {
   const el = document.getElementById('clasificados-view')
+  if (!el) return  // la sección fue eliminada del HTML; evitar romper loadAll
   if (!clasificados.length) {
     el.innerHTML = '<div class="empty">El admin aún no ha cargado clasificados.</div>'
     return
