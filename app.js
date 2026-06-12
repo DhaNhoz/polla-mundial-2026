@@ -12,6 +12,7 @@ const PARTICIPANTES_LISTA = [
   { id:12, nombre:'Daniel Rios' },
   { id:13, nombre:'Johanna Flores' },
   { id:14, nombre:'Equipo Series' },
+  { id:15, nombre:'Carlos De La Fuente G.' },
 ]
 
 const GRUPOS = [
@@ -165,6 +166,7 @@ function logout() {
   document.getElementById('login-btn').disabled = true
   document.getElementById('pin-wrap').style.display = 'none'
   document.getElementById('login-error').textContent = ''
+  buildGrupos()  // volver a vista neutral de grupos
 }
 
 // ─── NAV ─────────────────────────────────────────────────────
@@ -187,6 +189,7 @@ async function loadAll() {
   ])
   // Renderizar después de que los 3 estén listos
   renderMyBracket()
+  buildGrupos()  // re-dibujar grupos con las elecciones del usuario
 }
 
 // ─── RANKING ─────────────────────────────────────────────────
@@ -351,10 +354,30 @@ function renderMyBracket() {
 
 // ─── GRUPOS ──────────────────────────────────────────────────
 function buildGrupos() {
+  // Equipos que el participante logueado eligió que pasaran (octavos = "Sí" del Excel)
+  const myPicks = new Set()
+  if (currentUser && !currentUser.isAdmin) {
+    (predicciones[parseInt(currentUser.id)] || [])
+      .filter(p => p.fase === 'octavos')
+      .forEach(p => myPicks.add(p.equipo))
+  }
+  const showPicks = myPicks.size > 0
+
+  const titulo = document.getElementById('grupos-titulo')
+  if (titulo) titulo.textContent = showPicks
+    ? `TUS ELECCIONES POR GRUPO — ${currentUser.nombre.split(' ')[0]}`
+    : 'LOS 12 GRUPOS'
+
   document.getElementById('grupos-grid').innerHTML = GRUPOS.map(g =>
     `<div class="grupo-card">
       <div class="grupo-header" style="background:${g.color}">GRUPO ${g.id}</div>
-      ${g.teams.map(t=>`<div class="grupo-team">${t}</div>`).join('')}
+      ${g.teams.map(t=>{
+        const picked = myPicks.has(t)
+        const style = picked
+          ? 'color:#4ade80;font-weight:600'
+          : (showPicks ? 'opacity:.4' : '')
+        return `<div class="grupo-team" style="${style}">${picked?'✓ ':''}${t}</div>`
+      }).join('')}
     </div>`
   ).join('')
 }
