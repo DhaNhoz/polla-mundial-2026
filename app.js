@@ -147,12 +147,7 @@ async function enterApp() {
   document.getElementById('app-screen').style.display = 'block'
   setupAppShell()
 
-  // 2. Mostrar loading en bracket mientras cargan los datos
-  document.getElementById('my-bracket-content').innerHTML = `
-    <div class="section-title">Mi Bracket</div>
-    <div class="spinner"><div class="spin"></div></div>`
-
-  // 3. Cargar datos en paralelo y esperar TODOS antes de renderizar
+  // 2. Cargar datos en paralelo y esperar TODOS antes de renderizar
   await loadAll()
 }
 
@@ -282,9 +277,11 @@ async function loadPredicciones() {
     if (error) throw error
     predicciones = {}
     ;(data || []).forEach(r => {
-      if (!predicciones[r.participante_id]) predicciones[r.participante_id] = []
-      predicciones[r.participante_id].push({ fase: r.fase, equipo: r.equipo })
+      const pid = parseInt(r.participante_id)
+      if (!predicciones[pid]) predicciones[pid] = []
+      predicciones[pid].push({ fase: r.fase, equipo: r.equipo })
     })
+    console.log('Predicciones cargadas:', Object.keys(predicciones).length, 'participantes')
   } catch(e) { console.error('loadPredicciones:', e); predicciones = {} }
 }
 
