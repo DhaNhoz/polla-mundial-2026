@@ -5,49 +5,40 @@ const sb = supabase.createClient(SB_URL, SB_KEY)
 
 // ─── CONSTANTES ──────────────────────────────────────────────
 const ADMIN_PIN = '1225'
-const AVATAR_COLORS = ['#8B1A1A','#7A3B00','#1A6B1A','#005E5E','#004F6B','#2B006B','#7A004A','#5B2000','#003A7A','#5B006B']
+const AVATAR_COLORS = ['#8B1A1A','#7A3B00','#1A6B1A','#005E5E','#004F6B','#2B006B','#7A004A','#5B2000','#003A7A','#5B006B','#6B3A00','#004040']
+const CUOTA = 50000
 
-// Hardcoded — actualizar cuando lleguen nuevos Excel
+// Equipos que siguen en el torneo (32 clasificados a 16avos)
+const EQUIPOS = [
+  '🇦🇷 Argentina','🇦🇺 Australia','🇧🇪 Bélgica','🇧🇦 Bosnia y Herzegovina',
+  '🇧🇷 Brasil','🇨🇻 Cabo Verde','🇨🇦 Canadá','🇨🇮 Costa de Marfil',
+  '🇭🇷 Croacia','🇪🇨 Ecuador','🇪🇬 Egipto','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra',
+  '🇪🇸 España','🇺🇸 Estados Unidos','🇫🇷 Francia','🇬🇭 Ghana',
+  '🇩🇪 Alemania','🇯🇵 Japón','🇲🇦 Marruecos','🇲🇽 México',
+  '🇳🇱 Países Bajos','🇵🇾 Paraguay','🇵🇹 Portugal','🇸🇳 Senegal',
+  '🇸🇩 Sudáfrica','🇸🇪 Suecia','🇨🇭 Suiza','🇸🇩 Argelia',
+  '🇳🇴 Noruega','🇨🇩 R.D. Congo','🇦🇹 Austria','🇨🇴 Colombia',
+].sort((a,b) => a.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g,'').localeCompare(b.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g,'')))
+
+// Participantes hardcoded — actualizar al agregar nuevos
 const PARTICIPANTES_LISTA = [
-  { id:12, nombre:'Daniel Rios' },
-  { id:13, nombre:'Johanna Flores' },
-  { id:14, nombre:'Equipo Series' },
-  { id:15, nombre:'Carlos De La Fuente G.' },
+  { id:1, nombre:'Daniel Rios' },
+  { id:2, nombre:'Johanna Flores' },
+  { id:3, nombre:'Equipo Series' },
 ]
 
-const GRUPOS = [
-  {id:'A',color:'#8B1A1A',teams:['México','Sudáfrica','Corea del Sur','Rep. Checa']},
-  {id:'B',color:'#7A3B00',teams:['Canadá','Qatar','Suiza','Bosnia y Herzegovina']},
-  {id:'C',color:'#5A5000',teams:['Brasil','Marruecos','Haití','Escocia']},
-  {id:'D',color:'#1A6B1A',teams:['Estados Unidos','Paraguay','Australia','Turquía']},
-  {id:'E',color:'#005E5E',teams:['Alemania','Curazao','Costa de Marfil','Ecuador']},
-  {id:'F',color:'#004F6B',teams:['Países Bajos','Japón','Túnez','Suecia']},
-  {id:'G',color:'#002B8B',teams:['Bélgica','Egipto','Irán','Nueva Zelanda']},
-  {id:'H',color:'#2B006B',teams:['España','Cabo Verde','Arabia Saudí','Uruguay']},
-  {id:'I',color:'#5B006B',teams:['Francia','Senegal','Irak','Noruega']},
-  {id:'J',color:'#7A004A',teams:['Argentina','Argelia','Austria','Jordania']},
-  {id:'K',color:'#6B0030',teams:['Portugal','Uzbekistán','Colombia','R.D. Congo']},
-  {id:'L',color:'#5B2000',teams:['Inglaterra','Croacia','Ghana','Panamá']},
-]
-const ALL_TEAMS = GRUPOS.flatMap(g => g.teams)
-
-const FASE_COLORS_MAP = { octavos:'#3A1A00', cuartos:'#001A3A', semis:'#1A003A', final:'#2A1A00', campeon:'#C9A227' }
-const FASES_LIST = [
-  {key:'octavos', label:'Octavos de Final',  pts:1},
-  {key:'cuartos', label:'Cuartos de Final',  pts:2},
-  {key:'semis',   label:'Semifinales',       pts:3},
-  {key:'final',   label:'Final',             pts:5},
-  {key:'campeon', label:'Campeón',           pts:10},
-]
+// Puntos por posición
+const PTS = { p1: 5, p2: 3, p3: 2 }
 
 // ─── ESTADO ──────────────────────────────────────────────────
 let currentUser  = null
 let ranking      = []
-let predicciones = {}
-let clasificados = []
+let resultado    = null   // { p1, p2, p3 } — el podio real
+let misPicks     = null   // { p1, p2, p3 } del usuario logueado
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function initials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) }
+function formatPesos(n) { return '$' + (n).toLocaleString('es-CL') }
 
 function showToast(msg, err=false) {
   const t = document.getElementById('toast')
@@ -58,18 +49,21 @@ function showToast(msg, err=false) {
   setTimeout(() => t.classList.remove('show'), 2800)
 }
 
+function pillClass(equipo, slot) {
+  if (!resultado) return 'pending'
+  const real = resultado[slot]
+  return equipo === real ? 'hit' : 'miss'
+}
+
 // ─── LOGIN ───────────────────────────────────────────────────
 function initLogin() {
   const select   = document.getElementById('login-select')
   const loginBtn = document.getElementById('login-btn')
 
-  // Poblar select inmediatamente — sin red, sin async
   select.innerHTML = '<option value="">— Selecciona tu nombre —</option>'
   PARTICIPANTES_LISTA.forEach((p, i) => {
     const opt = document.createElement('option')
-    opt.value = p.id
-    opt.dataset.nombre = p.nombre
-    opt.dataset.idx = i
+    opt.value = p.id; opt.dataset.nombre = p.nombre; opt.dataset.idx = i
     opt.textContent = p.nombre
     select.appendChild(opt)
   })
@@ -77,7 +71,6 @@ function initLogin() {
   select.appendChild(sep)
   const admin = document.createElement('option'); admin.value = '__admin__'; admin.textContent = '⚙ Administrador'
   select.appendChild(admin)
-  select.disabled = false
 
   select.addEventListener('change', () => {
     const v = select.value
@@ -96,7 +89,6 @@ function initLogin() {
     const pin   = document.getElementById('login-pin').value.trim()
     const errEl = document.getElementById('login-error')
     const opt   = select.options[select.selectedIndex]
-
     if (!select.value) { errEl.textContent = 'Selecciona tu nombre'; return }
 
     if (select.value === '__admin__') {
@@ -104,58 +96,42 @@ function initLogin() {
       currentUser = { nombre:'Administrador', isAdmin:true, id:null, color:'#4ade80' }
     } else {
       const idx = parseInt(opt.dataset.idx ?? 0)
-      currentUser = {
-        nombre:  opt.dataset.nombre || opt.textContent.trim(),
-        isAdmin: false,
-        id:      parseInt(select.value),
-        color:   AVATAR_COLORS[idx % AVATAR_COLORS.length]
-      }
+      currentUser = { nombre: opt.dataset.nombre||opt.textContent.trim(), isAdmin:false, id:parseInt(select.value), color:AVATAR_COLORS[idx%AVATAR_COLORS.length] }
     }
     sessionStorage.setItem('polla_user', JSON.stringify(currentUser))
     enterApp()
   })
 }
 
-// ─── ENTRAR A LA APP ─────────────────────────────────────────
+// ─── ENTRAR ──────────────────────────────────────────────────
 function setupAppShell() {
-  // Chip usuario
-  const chip = document.getElementById('user-chip')
   document.getElementById('chip-name').textContent = currentUser.nombre
   const av = document.getElementById('chip-avatar')
   av.textContent = initials(currentUser.nombre)
-  av.style.background = currentUser.color + '30'
-  av.style.color = currentUser.color
-  if (currentUser.isAdmin) chip.classList.add('admin-chip')
-
-  // Botón admin — solo si es admin y no existe ya
-  if (currentUser.isAdmin && !document.getElementById('admin-panel-btn')) {
-    const btn = document.createElement('button')
-    btn.id = 'admin-panel-btn'
-    btn.className = 'admin-btn'
-    btn.textContent = '⚙ Panel'
-    btn.style.marginLeft = '8px'
-    btn.addEventListener('click', () => {
-      document.getElementById('admin-modal').classList.add('open')
-      renderAdminList()
-    })
-    chip.parentNode.insertBefore(btn, chip)
+  av.style.background = currentUser.color + '30'; av.style.color = currentUser.color
+  if (currentUser.isAdmin) {
+    document.getElementById('user-chip').classList.add('admin-chip')
+    if (!document.getElementById('admin-panel-btn')) {
+      const btn = document.createElement('button')
+      btn.id = 'admin-panel-btn'; btn.className = 'nav-btn'; btn.textContent = '⚙'
+      btn.style.marginLeft = '4px'
+      btn.addEventListener('click', () => { document.getElementById('admin-modal').classList.add('open'); renderResultadoActual() })
+      document.querySelector('.nav').appendChild(btn)
+    }
   }
 }
 
 async function enterApp() {
-  // 1. Mostrar shell inmediatamente
   document.getElementById('login-screen').style.display = 'none'
   document.getElementById('app-screen').style.display = 'block'
   setupAppShell()
-
-  // 2. Cargar datos en paralelo y esperar TODOS antes de renderizar
+  buildEquipoSelects()
   await loadAll()
 }
 
 function logout() {
   sessionStorage.removeItem('polla_user')
   currentUser = null
-  // Limpiar botón admin si existe
   const adminBtn = document.getElementById('admin-panel-btn')
   if (adminBtn) adminBtn.remove()
   document.getElementById('user-chip').classList.remove('admin-chip')
@@ -165,13 +141,12 @@ function logout() {
   document.getElementById('login-pin').value = ''
   document.getElementById('login-btn').disabled = true
   document.getElementById('pin-wrap').style.display = 'none'
-  document.getElementById('login-error').textContent = ''
-  buildGrupos()  // volver a vista neutral de grupos
 }
 
 // ─── NAV ─────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (!btn.dataset.page) return
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
     btn.classList.add('active')
@@ -179,324 +154,229 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   })
 })
 
-// ─── CARGA PRINCIPAL ─────────────────────────────────────────
+// ─── CARGA ───────────────────────────────────────────────────
 async function loadAll() {
-  // Cargar todo en paralelo y esperar a que termine TODO
-  await Promise.all([
-    loadRanking(),
-    loadPredicciones(),
-    loadClasificados(),
-  ])
-  // Renderizar después de que los 3 estén listos
-  renderMyBracket()
-  buildGrupos()  // re-dibujar grupos con las elecciones del usuario
+  await Promise.all([loadRanking(), loadResultado(), loadMisPicks()])
+  renderRanking()
+  renderStats()
+  renderSavedPicks()
 }
 
 // ─── RANKING ─────────────────────────────────────────────────
 async function loadRanking() {
   try {
-    const { data, error } = await sb.from('polla_ranking').select('*').order('posicion')
+    const { data, error } = await sb.from('polla_podio_picks').select('*').order('puntos', { ascending:false })
     if (error) throw error
     ranking = data || []
   } catch(e) { console.error('loadRanking:', e); ranking = [] }
-  renderRanking()
-  renderStats()
+}
+
+async function loadResultado() {
+  try {
+    const { data, error } = await sb.from('polla_podio_resultado').select('*').limit(1).single()
+    if (error && error.code !== 'PGRST116') throw error
+    resultado = data || null
+  } catch(e) { resultado = null }
+}
+
+async function loadMisPicks() {
+  if (!currentUser || currentUser.isAdmin) return
+  try {
+    const { data } = await sb.from('polla_podio_picks').select('*').eq('participante_id', currentUser.id).single()
+    misPicks = data || null
+  } catch(e) { misPicks = null }
+}
+
+function calcPuntos(pick) {
+  if (!resultado || !pick) return 0
+  let pts = 0
+  if (pick.p1 === resultado.p1) pts += PTS.p1
+  if (pick.p2 === resultado.p2) pts += PTS.p2
+  if (pick.p3 === resultado.p3) pts += PTS.p3
+  return pts
 }
 
 function renderStats() {
-  document.getElementById('s-part').textContent   = ranking.length || '0'
-  document.getElementById('s-leader').textContent  = ranking[0]?.nombre?.split(' ')[0] || '—'
-  document.getElementById('s-max').textContent     = ranking[0]?.puntos_total ?? '0'
+  const n = ranking.length
+  document.getElementById('s-part').textContent  = n || '0'
+  document.getElementById('s-pozo').textContent   = formatPesos(n * CUOTA)
+  const sorted = [...ranking].sort((a,b) => calcPuntos(b) - calcPuntos(a))
+  document.getElementById('s-leader').textContent  = sorted[0]?.nombre?.split(' ')[0] || '—'
+  document.getElementById('s-pts').textContent     = sorted[0] ? calcPuntos(sorted[0]) : '—'
 }
 
 function renderRanking() {
-  const max  = ranking[0]?.puntos_total || 1
+  // Calcular puntos y ordenar
+  const sorted = [...ranking].map(r => ({ ...r, pts: calcPuntos(r) }))
+    .sort((a,b) => b.pts - a.pts || (a.p1 === resultado?.p1 ? -1 : 1))
+
+  // Podio top 3
+  const podioEl = document.getElementById('podio-top')
+  const medals = ['🥇','🥈','🥉']
+  const pClasses = ['p1','p2','p3']
+  const pColors = ['var(--gold)','var(--silver)','var(--bronze)']
+  podioEl.innerHTML = [0,1,2].map(i => {
+    const p = sorted[i]
+    return `<div class="podio-card ${pClasses[i]}">
+      <div class="podio-medal">${medals[i]}</div>
+      ${p ? `
+        <div class="podio-name">${p.nombre}</div>
+        <div class="podio-pts ${pClasses[i]}">${p.pts} pts</div>
+        <div class="podio-detail">${p.p1||'—'} / ${p.p2||'—'} / ${p.p3||'—'}</div>
+      ` : `<div class="podio-name" style="color:var(--muted)">Sin datos</div>`}
+    </div>`
+  }).join('')
+
+  // Tabla
   const body = document.getElementById('ranking-body')
-  if (!ranking.length) {
-    body.innerHTML = `<tr><td colspan="8"><div class="empty">
-      <div style="font-size:32px;margin-bottom:10px">⏳</div>
-      <div style="font-weight:600;color:#c8d0e8;margin-bottom:5px">Sin datos aún</div>
-    </div></td></tr>`
-    document.getElementById('detail-cards').innerHTML = ''
+  if (!sorted.length) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty">Aún no hay participantes.</div></td></tr>`
     return
   }
-  body.innerHTML = ranking.map((p, i) => {
-    const pct   = Math.round((p.puntos_total / max) * 100)
+  body.innerHTML = sorted.map((p, i) => {
+    const isMe = currentUser && !currentUser.isAdmin && p.participante_id === parseInt(currentUser.id)
     const color = AVATAR_COLORS[i % AVATAR_COLORS.length]
-    const posC  = i===0?'pos-1':i===1?'pos-2':i===2?'pos-3':'pos-n'
-    const isMe  = currentUser && !currentUser.isAdmin && p.id === parseInt(currentUser.id)
-    const cell  = k => `<td style="text-align:center;color:#8892b0;font-size:12px">${p['pts_'+k]??0}</td>`
+    const posC = i===0?'pos-1':i===1?'pos-2':i===2?'pos-3':'pos-n'
+    const pc1 = resultado ? pillClass(p.p1,'p1') : 'pending'
+    const pc2 = resultado ? pillClass(p.p2,'p2') : 'pending'
+    const pc3 = resultado ? pillClass(p.p3,'p3') : 'pending'
     return `<tr class="${isMe?'me':''}">
-      <td><span class="pos-badge ${posC}">${p.posicion}</span></td>
+      <td><span class="pos-badge ${posC}">${i+1}</span></td>
       <td><div class="name-cell">
         <div class="avatar" style="background:${color}25;color:${color}">${initials(p.nombre)}</div>
-        <div>
-          <div style="font-size:13px;color:#c8d0e8">${p.nombre}${isMe?'<span style="font-size:10px;color:#4ade80;background:#0d1a0d;padding:1px 6px;border-radius:4px;margin-left:6px">Tú</span>':''}</div>
-          <div style="font-size:11px;color:#8892b0">🏆 ${p.campeon||'—'}</div>
-        </div>
+        <span style="font-size:13px;color:#c8d0e8">${p.nombre}${isMe?'<span style="font-size:10px;color:#4ade80;background:#0d1a0d;padding:1px 6px;border-radius:4px;margin-left:6px">Tú</span>':''}</span>
       </div></td>
-      ${cell('octavos')}${cell('cuartos')}${cell('semis')}${cell('final')}${cell('campeon')}
-      <td style="text-align:right"><div class="bar-wrap">
-        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <span class="pts-val">${p.puntos_total}</span>
-      </div></td>
+      <td style="text-align:center"><span class="flag-pill ${pc1}">${p.p1||'—'}</span></td>
+      <td style="text-align:center"><span class="flag-pill ${pc2}">${p.p2||'—'}</span></td>
+      <td style="text-align:center"><span class="flag-pill ${pc3}">${p.p3||'—'}</span></td>
+      <td style="text-align:right;font-size:16px;font-weight:700;color:${p.pts>0?'var(--gold)':'var(--muted)'}">${p.pts}</td>
     </tr>`
   }).join('')
-  renderDetailCards()
 }
 
-function renderDetailCards() {
-  const el = document.getElementById('detail-cards')
-  if (!ranking.length) { el.innerHTML = ''; return }
-  const FASES_DEF = [
-    {key:'octavos',label:'Octavos',pts:1,max:32},{key:'cuartos',label:'Cuartos',pts:2,max:8},
-    {key:'semis',label:'Semis',pts:3,max:4},{key:'final',label:'Final',pts:5,max:2},
-    {key:'campeon',label:'Campeón',pts:10,max:1}
-  ]
-  el.innerHTML = ranking.map((p, i) => {
-    const color = AVATAR_COLORS[i % AVATAR_COLORS.length]
-    const isMe  = currentUser && !currentUser.isAdmin && p.id === parseInt(currentUser.id)
-    const chips = FASES_DEF.map(f =>
-      `<span class="chip ${(p['pts_'+f.key]??0)>0?'hit':'pending'}">${f.label} ${p['pts_'+f.key]??0}/${f.max*f.pts}</span>`
-    ).join('')
-    return `<div class="detail-card ${isMe?'me':''}">
-      <div class="avatar" style="background:${color}25;color:${color};width:34px;height:34px;font-size:11px">${initials(p.nombre)}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;color:#c8d0e8;margin-bottom:4px">${p.nombre}${isMe?'<span style="font-size:10px;color:#4ade80"> ← Tú</span>':''}</div>
-        <div class="chips">${chips}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:22px;font-weight:700;color:#c9a227">${p.puntos_total}</div>
-        <div style="font-size:10px;color:#8892b0">${p.aciertos_total??0} aciertos</div>
-      </div>
-    </div>`
-  }).join('')
+// ─── MI SELECCIÓN ────────────────────────────────────────────
+function buildEquipoSelects() {
+  const opts = '<option value="">— Elige —</option>' + EQUIPOS.map(e => `<option value="${e}">${e}</option>`).join('')
+  ;['pick-1','pick-2','pick-3','admin-1','admin-2','admin-3'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.innerHTML = opts
+  })
 }
 
-// ─── PREDICCIONES ────────────────────────────────────────────
-async function loadPredicciones() {
-  try {
-    const { data, error } = await sb.from('polla_predicciones').select('participante_id,fase,equipo')
-    if (error) throw error
-    predicciones = {}
-    ;(data || []).forEach(r => {
-      const pid = parseInt(r.participante_id)
-      if (!predicciones[pid]) predicciones[pid] = []
-      predicciones[pid].push({ fase: r.fase, equipo: r.equipo })
-    })
-    console.log('Predicciones cargadas:', Object.keys(predicciones).length, 'participantes')
-  } catch(e) { console.error('loadPredicciones:', e); predicciones = {} }
+function renderSavedPicks() {
+  const el = document.getElementById('saved-picks-display')
+  if (!misPicks) { el.innerHTML = ''; return }
+
+  const pc1 = resultado ? pillClass(misPicks.p1,'p1') : 'pending'
+  const pc2 = resultado ? pillClass(misPicks.p2,'p2') : 'pending'
+  const pc3 = resultado ? pillClass(misPicks.p3,'p3') : 'pending'
+  const pts = calcPuntos(misPicks)
+
+  el.innerHTML = `<div style="background:#0d1a0d;border:1px solid #2d6a2d;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+    <div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:10px">✓ Tu selección guardada${pts>0?` · <span style="color:var(--gold)">${pts} puntos</span>`:''}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="flag-pill ${pc1}">🥇 ${misPicks.p1||'—'}</span>
+      <span class="flag-pill ${pc2}">🥈 ${misPicks.p2||'—'}</span>
+      <span class="flag-pill ${pc3}">🥉 ${misPicks.p3||'—'}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">Puedes actualizar tu selección mientras el torneo esté en curso.</div>
+  </div>`
+
+  // Pre-llenar selects con picks guardados
+  document.getElementById('pick-1').value = misPicks.p1 || ''
+  document.getElementById('pick-2').value = misPicks.p2 || ''
+  document.getElementById('pick-3').value = misPicks.p3 || ''
 }
 
-// ─── MI BRACKET ──────────────────────────────────────────────
-function renderMyBracket() {
-  const el = document.getElementById('my-bracket-content')
-  if (!currentUser || currentUser.isAdmin) {
-    el.innerHTML = `<div class="section-title">Vista general</div>
-      <p style="color:var(--muted);font-size:13px">Ingresa como participante para ver tu bracket.</p>`
-    return
-  }
+document.getElementById('submit-picks').addEventListener('click', async () => {
+  const p1 = document.getElementById('pick-1').value
+  const p2 = document.getElementById('pick-2').value
+  const p3 = document.getElementById('pick-3').value
+  const err = document.getElementById('picks-error')
 
-  const picks     = predicciones[parseInt(currentUser.id)] || []
-  const byFase    = {}
-  picks.forEach(p => { if (!byFase[p.fase]) byFase[p.fase]=[]; byFase[p.fase].push(p.equipo) })
+  if (!p1 || !p2 || !p3) { err.textContent = 'Debes elegir los 3 puestos'; return }
+  if (p1===p2 || p1===p3 || p2===p3) { err.textContent = 'Los 3 equipos deben ser distintos'; return }
+  err.textContent = ''
 
-  const clasSet = {}
-  clasificados.forEach(c => { if (!clasSet[c.fase]) clasSet[c.fase]=new Set(); clasSet[c.fase].add(c.equipo) })
+  const pts = calcPuntos({ p1, p2, p3 })
+  const payload = { participante_id: currentUser.id, nombre: currentUser.nombre, p1, p2, p3, puntos: pts }
 
-  const myRanking = ranking.find(r => r.id === parseInt(currentUser.id))
+  const { error } = await sb.from('polla_podio_picks').upsert(payload, { onConflict: 'participante_id' })
+  if (error) { showToast('Error al guardar: ' + error.message, true); return }
 
-  const heroHtml = myRanking ? `
-    <div class="my-bracket-hero">
-      <div class="avatar" style="background:${currentUser.color}25;color:${currentUser.color};width:44px;height:44px;font-size:15px;flex-shrink:0">${initials(currentUser.nombre)}</div>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px">${currentUser.nombre}</div>
-        <div style="font-size:12px;color:var(--muted)">
-          Posición <strong style="color:var(--gold)">#${myRanking.posicion}</strong> ·
-          <strong style="color:#fff">${myRanking.puntos_total}</strong> puntos ·
-          Campeón: <strong style="color:var(--gold)">${myRanking.campeon||'—'}</strong>
-        </div>
-      </div>
-    </div>` : ''
-
-  const fasesHtml = !picks.length
-    ? '<div class="empty" style="padding:20px">Aún no se han cargado tus predicciones.</div>'
-    : FASES_LIST.map(f => {
-        const teams = byFase[f.key] || []
-        const pills = teams.length
-          ? teams.map(t => {
-              const hit  = clasSet[f.key]?.has(t)
-              const miss = clasificados.filter(c=>c.fase===f.key).length > 0 && !hit
-              const bc   = hit?'#2d6a2d':miss?'#3a1a1a':'#2a3060'
-              const tc   = hit?'#4ade80':miss?'#f87171':'#c8d0e8'
-              const icon = hit?'✓ ':miss?'✗ ':''
-              return `<span class="team-pill" style="border-color:${bc};color:${tc}">${icon}${t}</span>`
-            }).join('')
-          : '<span style="font-size:12px;color:#8892b0;font-style:italic">Sin predicción cargada</span>'
-        return `<div class="fase-block">
-          <div class="fase-header" style="background:${FASE_COLORS_MAP[f.key]};color:${f.key==='campeon'?'#0A0E1A':'#e8eaf6'}">${f.label.toUpperCase()} — ${f.pts} pto${f.pts>1?'s':''} c/u</div>
-          <div class="fase-teams">${pills}</div>
-        </div>`
-      }).join('') +
-      // Goleador
-      `<div class="fase-block">
-        <div class="fase-header" style="background:#2D6A2D;color:#e8eaf6">GOLEADOR DEL TORNEO — +5 pts (bonus)</div>
-        <div class="fase-teams">
-          ${myRanking?.goleador
-            ? `<span class="team-pill" style="border-color:#2d6a2d;color:#4ade80">⚽ ${myRanking.goleador}</span>`
-            : '<span style="font-size:12px;color:#8892b0;font-style:italic">Sin goleador cargado</span>'
-          }
-        </div>
-      </div>`
-
-  el.innerHTML = `<div class="section-title">Mi Bracket</div>${heroHtml}${fasesHtml}`
-}
-
-// ─── GRUPOS ──────────────────────────────────────────────────
-function buildGrupos() {
-  // Equipos que el participante logueado eligió que pasaran (octavos = "Sí" del Excel)
-  const myPicks = new Set()
-  if (currentUser && !currentUser.isAdmin) {
-    (predicciones[parseInt(currentUser.id)] || [])
-      .filter(p => p.fase === 'octavos')
-      .forEach(p => myPicks.add(p.equipo))
-  }
-  const showPicks = myPicks.size > 0
-
-  const titulo = document.getElementById('grupos-titulo')
-  if (titulo) titulo.textContent = showPicks
-    ? `TUS ELECCIONES POR GRUPO — ${currentUser.nombre.split(' ')[0]}`
-    : 'LOS 12 GRUPOS'
-
-  document.getElementById('grupos-grid').innerHTML = GRUPOS.map(g =>
-    `<div class="grupo-card">
-      <div class="grupo-header" style="background:${g.color}">GRUPO ${g.id}</div>
-      ${g.teams.map(t=>{
-        const picked = myPicks.has(t)
-        const style = picked
-          ? 'color:#4ade80;font-weight:600'
-          : (showPicks ? 'opacity:.4' : '')
-        return `<div class="grupo-team" style="${style}">${picked?'✓ ':''}${t}</div>`
-      }).join('')}
-    </div>`
-  ).join('')
-}
-
-// ─── CLASIFICADOS ────────────────────────────────────────────
-async function loadClasificados() {
-  try {
-    const { data, error } = await sb.from('polla_clasificados').select('*').order('fase').order('equipo')
-    if (error) throw error
-    clasificados = data || []
-  } catch(e) { console.error('loadClasificados:', e); clasificados = [] }
-  renderClasificadosView()
-  renderAdminList()
-}
-
-function renderClasificadosView() {
-  const el = document.getElementById('clasificados-view')
-  if (!el) return  // la sección fue eliminada del HTML; evitar romper loadAll
-  if (!clasificados.length) {
-    el.innerHTML = '<div class="empty">El admin aún no ha cargado clasificados.</div>'
-    return
-  }
-  const byFase = {}
-  clasificados.forEach(c => { if (!byFase[c.fase]) byFase[c.fase]=[]; byFase[c.fase].push(c.equipo) })
-  el.innerHTML = FASES_LIST.filter(f => byFase[f.key]).map(f =>
-    `<div class="fase-block" style="margin-bottom:7px">
-      <div class="fase-header" style="background:${FASE_COLORS_MAP[f.key]};color:${f.key==='campeon'?'#0a0e1a':'#e8eaf6'}">${f.label.toUpperCase()}</div>
-      <div class="fase-teams">${byFase[f.key].map(t=>`<span class="team-pill">${t}</span>`).join('')}</div>
-    </div>`
-  ).join('')
-}
+  showToast('✓ Selección guardada')
+  misPicks = payload
+  await loadAll()
+})
 
 // ─── ADMIN ───────────────────────────────────────────────────
-function buildEquipoSelect() {
-  document.getElementById('admin-equipo').innerHTML =
-    '<option value="">— Selecciona equipo —</option>' +
-    ALL_TEAMS.map(t => `<option value="${t}">${t}</option>`).join('')
-}
+document.getElementById('close-modal').addEventListener('click', () => document.getElementById('admin-modal').classList.remove('open'))
+document.getElementById('admin-modal').addEventListener('click', e => { if (e.target===e.currentTarget) e.currentTarget.classList.remove('open') })
 
-document.getElementById('close-modal').addEventListener('click', () =>
-  document.getElementById('admin-modal').classList.remove('open'))
-document.getElementById('admin-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open')
-})
-
-document.getElementById('btn-agregar').addEventListener('click', async () => {
-  const fase   = document.getElementById('admin-fase').value
-  const equipo = document.getElementById('admin-equipo').value
-  if (!equipo) { showToast('⚠ Selecciona un equipo', true); return }
-  const { error } = await sb.from('polla_clasificados').insert({ fase, equipo })
-  if (error) {
-    showToast(error.code==='23505' ? '⚠ Ya está en esta fase' : 'Error: '+error.message, true)
-    return
-  }
-  showToast(`✓ ${equipo} agregado`)
-  await loadClasificados()
-  await loadRanking()
-  renderMyBracket()  // actualizar bracket con nuevos clasificados
-})
-
-function renderAdminList() {
-  const el = document.getElementById('clasificados-list')
-  if (!clasificados.length) { el.innerHTML = ''; return }
-  const byFase = {}
-  clasificados.forEach(c => { if (!byFase[c.fase]) byFase[c.fase]=[]; byFase[c.fase].push(c) })
-  el.innerHTML = '<div style="margin-top:14px;font-size:11px;color:#8892b0;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Clasificados cargados</div>' +
-    FASES_LIST.filter(f => byFase[f.key]).map(f =>
-      `<div style="margin-bottom:10px">
-        <div style="font-size:11px;color:#c9a227;margin-bottom:5px;font-weight:700">${f.label.toUpperCase()}</div>
-        ${byFase[f.key].map(c =>
-          `<div class="clasificado-item">
-            <span>${c.equipo}</span>
-            <button class="btn-del" data-id="${c.id}">×</button>
-          </div>`
-        ).join('')}
+async function renderResultadoActual() {
+  await loadResultado()
+  const el = document.getElementById('resultado-actual')
+  if (resultado) {
+    el.style.display = 'block'
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Podio oficial guardado</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="flag-pill hit">🥇 ${resultado.p1}</span>
+        <span class="flag-pill hit">🥈 ${resultado.p2}</span>
+        <span class="flag-pill hit">🥉 ${resultado.p3}</span>
       </div>`
-    ).join('')
-  el.querySelectorAll('.btn-del').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const { error } = await sb.from('polla_clasificados').delete().eq('id', parseInt(btn.dataset.id))
-      if (error) { showToast('Error', true); return }
-      showToast('✓ Eliminado')
-      await loadClasificados()
-      await loadRanking()
-      renderMyBracket()
-    })
-  })
+    document.getElementById('admin-1').value = resultado.p1 || ''
+    document.getElementById('admin-2').value = resultado.p2 || ''
+    document.getElementById('admin-3').value = resultado.p3 || ''
+  } else {
+    el.style.display = 'none'
+  }
 }
+
+document.getElementById('btn-guardar-resultado').addEventListener('click', async () => {
+  const p1 = document.getElementById('admin-1').value
+  const p2 = document.getElementById('admin-2').value
+  const p3 = document.getElementById('admin-3').value
+  if (!p1||!p2||!p3) { showToast('Completa los 3 puestos', true); return }
+  if (p1===p2||p1===p3||p2===p3) { showToast('Los 3 equipos deben ser distintos', true); return }
+
+  // Guardar resultado
+  const { error } = await sb.from('polla_podio_resultado').upsert({ id:1, p1, p2, p3 })
+  if (error) { showToast('Error: ' + error.message, true); return }
+
+  // Recalcular puntos de todos los picks
+  resultado = { p1, p2, p3 }
+  const { data: picks } = await sb.from('polla_podio_picks').select('*')
+  for (const pick of picks||[]) {
+    const pts = calcPuntos(pick)
+    await sb.from('polla_podio_picks').update({ puntos: pts }).eq('participante_id', pick.participante_id)
+  }
+
+  showToast('✓ Resultado guardado — puntos actualizados')
+  document.getElementById('admin-modal').classList.remove('open')
+  await loadAll()
+})
 
 // ─── REALTIME ────────────────────────────────────────────────
-sb.channel('polla-live')
-  .on('postgres_changes', {event:'*', schema:'public', table:'polla_puntos'}, async () => {
-    await loadRanking()
-    renderMyBracket()
+sb.channel('polla-podio-live')
+  .on('postgres_changes', {event:'*', schema:'public', table:'polla_podio_picks'}, async () => {
+    await loadRanking(); renderRanking(); renderStats()
   })
-  .on('postgres_changes', {event:'*', schema:'public', table:'polla_clasificados'}, async () => {
-    await loadClasificados()
-    renderMyBracket()
+  .on('postgres_changes', {event:'*', schema:'public', table:'polla_podio_resultado'}, async () => {
+    await loadResultado(); await loadAll()
   })
   .subscribe()
 
 // ─── ARRANCAR ────────────────────────────────────────────────
-// El script está al final del body, el DOM ya está listo
 ;(async function start() {
-  // Cosas que no dependen de red — corren inmediatamente
+  buildEquipoSelects()
   initLogin()
-  buildGrupos()
-  buildEquipoSelect()
-
-  // Si hay sesión guardada, entrar directo
   const saved = sessionStorage.getItem('polla_user')
   if (saved) {
     try {
       currentUser = JSON.parse(saved)
-      if (currentUser.id) currentUser.id = parseInt(currentUser.id)  // garantizar que es number
+      if (currentUser.id) currentUser.id = parseInt(currentUser.id)
       await enterApp()
-    } catch(e) {
-      sessionStorage.removeItem('polla_user')
-      currentUser = null
-    }
+    } catch(e) { sessionStorage.removeItem('polla_user'); currentUser = null }
   }
 })()
