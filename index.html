@@ -3,61 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Polla Mundial 2026</title>
+  <title>Polla Mundial 2026 — Podio</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --dark:#080c18; --mid:#0d1128; --card:#1a2040; --border:#1e2540;
-      --gold:#c9a227; --gold-l:#e8c64a; --white:#ffffff;
-      --text:#c8d0e8; --muted:#8892b0; --green:#4ade80; --red:#f87171;
+      --gold:#c9a227; --gold-l:#e8c64a; --silver:#c0c0c0; --bronze:#cd7f32;
+      --white:#fff; --text:#c8d0e8; --muted:#8892b0; --green:#4ade80; --red:#f87171;
     }
     html { scroll-behavior:smooth; }
     body { background:var(--dark);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;font-size:14px; }
 
-    /* ── LOGIN ── */
-    .login-wrap {
-      min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background:radial-gradient(ellipse at 50% 0%, #1a2040 0%, var(--dark) 70%);
-      padding:20px;
-    }
-    .login-card {
-      background:var(--mid); border:1px solid var(--border); border-radius:20px;
-      padding:40px 36px; width:100%; max-width:400px; text-align:center;
-    }
-    .login-trophy { font-size:56px; margin-bottom:16px; display:block; }
-    .login-title { font-size:22px; font-weight:700; color:var(--white); margin-bottom:6px; }
-    .login-sub { font-size:13px; color:var(--muted); margin-bottom:32px; }
-    .login-label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; text-align:left; }
-    .login-select {
-      width:100%; padding:12px 14px; border-radius:10px;
-      border:1px solid var(--border); background:var(--card);
-      color:var(--text); font-size:14px; font-family:inherit;
-      outline:none; margin-bottom:16px; cursor:pointer;
-    }
+    .login-wrap { min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,#1a2040 0%,var(--dark) 70%);padding:20px; }
+    .login-card { background:var(--mid);border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:420px;text-align:center; }
+    .login-trophy { font-size:56px;margin-bottom:16px;display:block; }
+    .login-title { font-size:22px;font-weight:700;color:var(--white);margin-bottom:4px; }
+    .login-sub { font-size:13px;color:var(--muted);margin-bottom:20px; }
+    .cuota-badge { display:inline-block;background:#3a2a00;border:1px solid #c9a22740;color:var(--gold);font-size:15px;font-weight:700;padding:8px 20px;border-radius:8px;margin-bottom:24px; }
+    .login-label { display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:left; }
+    .login-select { width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;cursor:pointer; }
     .login-select:focus { border-color:var(--gold); }
-    .login-pin-wrap { display:none; margin-bottom:16px; }
-    .login-pin {
-      width:100%; padding:12px 14px; border-radius:10px;
-      border:1px solid var(--border); background:var(--card);
-      color:var(--text); font-size:18px; font-family:inherit;
-      outline:none; letter-spacing:4px; text-align:center;
-    }
+    .pin-wrap { display:none;margin-bottom:14px; }
+    .login-pin { width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:18px;font-family:inherit;outline:none;letter-spacing:4px;text-align:center; }
     .login-pin:focus { border-color:var(--gold); }
-    .login-btn {
-      width:100%; padding:13px; border-radius:10px;
-      background:var(--gold); border:none; color:#080c18;
-      font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
-      transition:background .15s; margin-bottom:12px;
-    }
+    .login-btn { width:100%;padding:13px;border-radius:10px;background:var(--gold);border:none;color:#080c18;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s; }
     .login-btn:hover { background:var(--gold-l); }
-    .login-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .login-error { font-size:12px; color:var(--red); min-height:18px; }
-    .login-hint { font-size:11px; color:var(--muted); margin-top:16px; }
-    .login-divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+    .login-btn:disabled { opacity:.5;cursor:not-allowed; }
+    .login-error { font-size:12px;color:var(--red);min-height:18px;margin-top:8px; }
+    .login-hint { font-size:11px;color:var(--muted);margin-top:16px;padding-top:16px;border-top:1px solid var(--border); }
 
-    /* ── TOPBAR ── */
     .topbar { position:sticky;top:0;z-index:100;background:var(--mid);border-bottom:1px solid #c9a22730;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px; }
     .logo { display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--gold); }
     .logo-dot { width:7px;height:7px;background:var(--gold);border-radius:50%; }
@@ -65,125 +41,84 @@
     .nav-btn { padding:6px 14px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit; }
     .nav-btn:hover { color:var(--text);background:#10142a; }
     .nav-btn.active { background:var(--card);color:var(--gold); }
-    .user-chip {
-      display:flex;align-items:center;gap:8px;background:var(--card);
-      border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;
-      font-size:12px;color:var(--text);transition:all .15s;
-    }
+    .user-chip { display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:12px;color:var(--text);transition:all .15s; }
     .user-chip:hover { border-color:var(--gold); }
     .user-avatar { width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
     .admin-chip { background:#1a2a00;border-color:#4ade8040;color:var(--green); }
 
-    /* ── HERO ── */
     .hero { background:linear-gradient(180deg,var(--mid) 0%,var(--dark) 100%);border-bottom:1px solid var(--border);padding:24px 20px 20px;text-align:center; }
     .hero-eyebrow { font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px; }
     .hero-title { font-size:28px;font-weight:700;color:var(--white);margin-bottom:4px; }
     .hero-sub { font-size:13px;color:var(--muted); }
 
-    /* ── STATS ── */
     .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 20px 0; }
     .stat-card { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center; }
     .stat-val { font-size:20px;font-weight:700;color:var(--gold); }
     .stat-lbl { font-size:11px;color:var(--muted);margin-top:2px; }
 
-    /* ── PREMIOS ── */
-    .premios-row { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 20px 0; }
-    .premio { background:linear-gradient(135deg,#1a1500,var(--mid));border:1px solid #c9a22730;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:11px; }
-    .premio-medal { font-size:24px;line-height:1;flex-shrink:0; }
-    .premio-pos { font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px; }
-    .premio-monto { font-size:18px;font-weight:700;color:var(--gold);margin-top:1px; }
-    .premio-2 { border-color:#c0c0c030; }
-    .premio-3 { border-color:#cd7f3230; }
-    @media (max-width:640px){ .premios-row { grid-template-columns:1fr; } }
-
-    /* ── PAGES ── */
     .page { display:none; } .page.active { display:block; }
     .section { padding:18px 20px; }
     .section-title { font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:flex;align-items:center;gap:10px; }
     .section-title::after { content:'';flex:1;height:1px;background:var(--border); }
 
-    /* ── RANKING ── */
+    .podio-wrap { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px; }
+    .podio-card { border-radius:12px;padding:20px 16px;text-align:center;border:1px solid; }
+    .podio-card.p1 { background:#1a1400;border-color:#c9a22760; }
+    .podio-card.p2 { background:#141414;border-color:#c0c0c060; }
+    .podio-card.p3 { background:#130d00;border-color:#cd7f3260; }
+    .podio-medal { font-size:36px;margin-bottom:8px; }
+    .podio-name { font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px; }
+    .podio-pts { font-size:22px;font-weight:700;margin-bottom:2px; }
+    .podio-pts.p1 { color:var(--gold); } .podio-pts.p2 { color:var(--silver); } .podio-pts.p3 { color:var(--bronze); }
+    .podio-detail { font-size:10px;color:var(--muted);margin-top:2px; }
+
     .table-wrap { background:var(--mid);border:1px solid var(--border);border-radius:12px;overflow:hidden; }
     .rtable { width:100%;border-collapse:collapse; }
     .rtable th { font-size:11px;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;font-weight:400; }
-    .rtable td { padding:10px 12px;border-bottom:1px solid #10142a; }
+    .rtable td { padding:10px 12px;border-bottom:1px solid #10142a;vertical-align:middle; }
     .rtable tr:last-child td { border-bottom:none; }
     .rtable tbody tr:hover td { background:rgba(255,255,255,.02); }
-    .rtable tbody tr.me td { background:#1a2a00 !important; }
+    .rtable tbody tr.me td { background:#0d1a0d; }
     .rtable tbody tr.me td:first-child { border-left:3px solid var(--green); }
     .pos-badge { width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700; }
-    .pos-1{background:#3a2a00;color:#c9a227;} .pos-2{background:#2a2a2a;color:#c0c0c0;}
-    .pos-3{background:#2a1800;color:#cd7f32;} .pos-n{background:var(--card);color:var(--muted);}
+    .pos-1{background:#3a2a00;color:var(--gold);} .pos-2{background:#222;color:var(--silver);}
+    .pos-3{background:#2a1800;color:var(--bronze);} .pos-n{background:var(--card);color:var(--muted);}
     .avatar { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0; }
     .name-cell { display:flex;align-items:center;gap:9px; }
-    .bar-wrap { display:flex;align-items:center;gap:6px; }
-    .bar-bg { flex:1;height:4px;background:var(--card);border-radius:2px;min-width:50px; }
-    .bar-fill { height:4px;border-radius:2px;background:var(--gold); }
-    .pts-val { font-size:14px;font-weight:700;color:var(--white);min-width:28px;text-align:right; }
+    .flag-pill { display:inline-block;background:var(--card);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:11px;color:var(--text); }
+    .flag-pill.hit { border-color:#2d6a2d;color:var(--green);background:#0d1a0d; }
+    .flag-pill.miss { border-color:#3a1a1a;color:var(--red);background:#1a0d0d; }
+    .flag-pill.pending { border-color:#3a2a00;color:var(--gold);background:#1a1500; }
 
-    /* ── DETAIL CARDS ── */
-    .detail-card { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px; }
-    .detail-card.me { border-color:#4ade8040;background:#0d1a0d; }
-    .chips { display:flex;gap:5px;flex-wrap:wrap;margin-top:5px; }
-    .chip { padding:3px 9px;border-radius:20px;font-size:11px;border:1px solid var(--border);color:var(--muted);background:var(--card); }
-    .chip.hit { border-color:#2d6a2d;color:var(--green);background:#0d1a0d; }
-    .chip.pending { border-color:#3a2a00;color:var(--gold);background:#1a1500; }
+    .seleccion-card { background:var(--mid);border:1px solid var(--border);border-radius:12px;padding:20px; }
+    .podio-slots { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0; }
+    .slot { border-radius:10px;padding:14px 12px;border:2px dashed; }
+    .slot.s1 { border-color:#c9a22750;background:#1a140008; }
+    .slot.s2 { border-color:#c0c0c050;background:#14141408; }
+    .slot.s3 { border-color:#cd7f3250;background:#130d0008; }
+    .slot-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px; }
+    .slot.s1 .slot-label { color:var(--gold); }
+    .slot.s2 .slot-label { color:var(--silver); }
+    .slot.s3 .slot-label { color:var(--bronze); }
+    .slot-medal { font-size:22px;margin-bottom:6px; }
+    .slot select { width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer; }
+    .slot select:focus { border-color:var(--gold); }
+    .submit-btn { width:100%;padding:13px;border-radius:10px;background:var(--gold);border:none;color:#080c18;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:8px; }
+    .submit-btn:hover { background:var(--gold-l); }
+    .pts-card { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px; }
+    .pts-item { text-align:center;padding:12px;background:var(--card);border-radius:8px; }
 
-    /* ── MI BRACKET ── */
-    .my-bracket-hero { background:linear-gradient(135deg,#0d1a0d,#0d1128);border:1px solid #4ade8030;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px; }
-    .fase-block { background:var(--mid);border:1px solid var(--border);border-radius:10px;margin-bottom:7px;overflow:hidden; }
-    .fase-header { padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:1.5px; }
-    .fase-teams { padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px; }
-    .team-pill { background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px; }
-
-    /* ── PARTIDOS ── */
-    .filters-wrap { padding:14px 20px 0; }
-    .filter-group { display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px; }
-    .filter-label { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;align-self:center;min-width:44px; }
-    .filter-btn { padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap; }
-    .filter-btn:hover { color:var(--text); }
-    .filter-btn.active { background:var(--gold);border-color:var(--gold);color:#080c18;font-weight:700; }
-    .date-block { margin:0 20px 16px; }
-    .date-header { font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;padding:12px 0 8px;display:flex;align-items:center;gap:10px; }
-    .date-header::after { content:'';flex:1;height:1px;background:var(--border); }
-    .match-row { background:var(--mid);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:5px;display:grid;grid-template-columns:110px 1fr 105px;align-items:center;gap:10px;transition:background .15s; }
-    .match-row:hover { background:#0f1330;border-color:#2a3060; }
-    .match-group-badge { font-size:10px;font-weight:700;letter-spacing:.5px;padding:4px 8px;border-radius:6px;border:1px solid;text-align:center;white-space:nowrap; }
-    .match-teams { display:flex;align-items:center;gap:10px; }
-    .team-name { font-size:13px;color:var(--text);flex:1; }
-    .team-name.r { text-align:right; }
-    .score-box { display:flex;align-items:center;gap:5px;border-radius:8px;padding:5px 10px;min-width:56px;justify-content:center; }
-    .vs-box { background:var(--card);border:1px solid var(--border); }
-    .live-score { background:#2a0000;border:1px solid #f8717140; }
-    .fin-score { background:var(--card);border:1px solid #2a3060; }
-    .score-n { font-size:16px;font-weight:700;color:#fff;min-width:14px;text-align:center; }
-    .score-sep { color:var(--muted);font-size:12px; }
-    .match-right { text-align:right; }
-    .live-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--red); }
-    .live-dot { width:6px;height:6px;background:var(--red);border-radius:50%;animation:blink 1s infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-
-    /* ── GRUPOS ── */
-    .grupos-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
-    .grupo-card { border-radius:10px;overflow:hidden;border:1px solid var(--border); }
-    .grupo-header { padding:7px 11px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#fff; }
-    .grupo-team { padding:5px 11px;font-size:12px;color:var(--text);border-top:1px solid rgba(255,255,255,.06); }
-
-    /* ── ADMIN MODAL ── */
-    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200; }
+    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200; }
     .modal-overlay.open { display:flex; }
     .modal { background:var(--mid);border:1px solid var(--border);border-radius:16px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto; }
     .modal h2 { font-size:16px;font-weight:700;color:var(--white);margin-bottom:4px; }
-    .modal p { font-size:12px;color:var(--muted);margin-bottom:20px; }
+    .modal-sub { font-size:12px;color:var(--muted);margin-bottom:18px; }
     .form-group { margin-bottom:12px; }
     .form-group label { display:block;font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px; }
     .form-group select { width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit;outline:none; }
-    .form-group select:focus { border-color:var(--gold); }
-    .btn-gold { width:100%;padding:10px;border-radius:8px;background:var(--gold);border:none;color:#0a0e1a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s; }
-    .btn-gold:hover { background:var(--gold-l); }
+    .btn-gold-modal { width:100%;padding:10px;border-radius:8px;background:var(--gold);border:none;color:#0a0e1a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit; }
     .btn-close { float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1; }
-    .clasificado-item { display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--card);border-radius:6px;margin-bottom:5px;font-size:12px; }
-    .btn-del { background:none;border:none;color:#f87171;cursor:pointer;font-size:16px;line-height:1; }
+    .resultado-box { background:var(--card);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12px; }
 
     .spinner { display:flex;justify-content:center;padding:36px; }
     .spin { width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite; }
@@ -192,50 +127,44 @@
     .toast { position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--green);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--green);z-index:300;transform:translateY(100px);opacity:0;transition:all .3s; }
     .toast.show { transform:translateY(0);opacity:1; }
 
-    @media (max-width:640px) {
+    @media (max-width:600px) {
       .stats-row { grid-template-columns:repeat(2,1fr); }
-      .grupos-grid { grid-template-columns:repeat(2,1fr); }
+      .podio-wrap { grid-template-columns:1fr; }
+      .podio-slots { grid-template-columns:1fr; }
       .hero-title { font-size:22px; }
-      .match-row { grid-template-columns:80px 1fr 80px;gap:7px; }
-      .nav-btn span { display:none; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
+<!-- LOGIN -->
 <div class="login-wrap" id="login-screen">
   <div class="login-card">
     <span class="login-trophy">🏆</span>
     <div class="login-title">Polla Mundial 2026</div>
-    <div class="login-sub">Oficina Mazal · $200.000 en juego</div>
-
+    <div class="login-sub">Fase Eliminatoria · Oficina Mazal</div>
+    <div class="cuota-badge">Cuota: $50.000 CLP</div>
     <label class="login-label">¿Quién eres?</label>
     <select class="login-select" id="login-select">
       <option value="">— Selecciona tu nombre —</option>
     </select>
-
-    <div class="login-pin-wrap" id="pin-wrap">
-      <label class="login-label">PIN de acceso (4 dígitos)</label>
+    <div class="pin-wrap" id="pin-wrap">
+      <label class="login-label">PIN de admin</label>
       <input class="login-pin" id="login-pin" type="password" maxlength="4" placeholder="• • • •" inputmode="numeric" />
     </div>
-
-    <button class="login-btn" id="login-btn">Ingresar</button>
+    <button class="login-btn" id="login-btn" disabled>Ingresar</button>
     <div class="login-error" id="login-error"></div>
-
-    <hr class="login-divider" />
     <div class="login-hint">¿Admin? Selecciona "Administrador" e ingresa el PIN.</div>
   </div>
 </div>
 
-<!-- ── APP ── -->
+<!-- APP -->
 <div id="app-screen" style="display:none">
   <div class="topbar">
     <div class="logo"><div class="logo-dot"></div>Polla Mundial 2026</div>
     <div class="nav">
       <button class="nav-btn active" data-page="ranking">🏆 <span>Ranking</span></button>
-      <button class="nav-btn" data-page="bracket">📋 <span>Mi Bracket</span></button>
-  
+      <button class="nav-btn" data-page="seleccion">🎯 <span>Mi Selección</span></button>
     </div>
     <div class="user-chip" id="user-chip" onclick="logout()">
       <div class="user-avatar" id="chip-avatar"></div>
@@ -245,61 +174,73 @@
   </div>
 
   <div class="hero">
-    <div class="hero-eyebrow">USA · México · Canadá — 11 Jun al 19 Jul 2026</div>
-    <div class="hero-title">Polla de la Oficina</div>
-    <div class="hero-sub">Cuota $20.000 · 10 participantes</div>
+    <div class="hero-eyebrow">USA · México · Canadá — Fase Eliminatoria</div>
+    <div class="hero-title">Polla del Podio</div>
+    <div class="hero-sub">Elige 🥇 1°, 🥈 2° y 🥉 3° del Mundial · Cuota $50.000</div>
   </div>
 
   <div class="stats-row">
     <div class="stat-card"><div class="stat-val" id="s-part">—</div><div class="stat-lbl">Participantes</div></div>
-    <div class="stat-card"><div class="stat-val">$200k</div><div class="stat-lbl">Pozo total</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pozo">—</div><div class="stat-lbl">Pozo total</div></div>
     <div class="stat-card"><div class="stat-val" id="s-leader">—</div><div class="stat-lbl">Líder actual</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-max">—</div><div class="stat-lbl">Puntos líder</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pts">—</div><div class="stat-lbl">Pts. líder</div></div>
   </div>
 
-  <div class="premios-row">
-    <div class="premio premio-1"><span class="premio-medal">🥇</span><div><div class="premio-pos">1er lugar</div><div class="premio-monto">$120.000</div></div></div>
-    <div class="premio premio-2"><span class="premio-medal">🥈</span><div><div class="premio-pos">2do lugar</div><div class="premio-monto">$50.000</div></div></div>
-    <div class="premio premio-3"><span class="premio-medal">🥉</span><div><div class="premio-pos">3er lugar</div><div class="premio-monto">$30.000</div></div></div>
-  </div>
-
-  <!-- RANKING -->
   <div class="page active" id="page-ranking">
     <div class="section">
-      <div class="section-title">Tabla de posiciones</div>
+      <div class="section-title">Podio actual</div>
+      <div class="podio-wrap" id="podio-top">
+        <div class="podio-card p1"><div class="podio-medal">🥇</div><div class="podio-name" style="color:var(--muted)">Sin datos aún</div></div>
+        <div class="podio-card p2"><div class="podio-medal">🥈</div><div class="podio-name" style="color:var(--muted)">Sin datos aún</div></div>
+        <div class="podio-card p3"><div class="podio-medal">🥉</div><div class="podio-name" style="color:var(--muted)">Sin datos aún</div></div>
+      </div>
+      <div class="section-title">Tabla completa</div>
       <div class="table-wrap">
         <table class="rtable">
           <thead><tr>
-            <th style="width:40px">#</th><th>Participante</th>
-            <th style="width:70px;text-align:center">Grupos</th>
-            <th style="width:70px;text-align:center">Cuartos</th>
-            <th style="width:70px;text-align:center">Semis</th>
-            <th style="width:70px;text-align:center">Final</th>
-            <th style="width:80px;text-align:center">Campeón</th>
-            <th style="width:90px;text-align:right">Total</th>
+            <th style="width:40px">#</th>
+            <th>Participante</th>
+            <th style="text-align:center">🥇 Campeón</th>
+            <th style="text-align:center">🥈 2° Lugar</th>
+            <th style="text-align:center">🥉 3° Lugar</th>
+            <th style="text-align:right;width:80px">Puntos</th>
           </tr></thead>
-          <tbody id="ranking-body"><tr><td colspan="8"><div class="spinner"><div class="spin"></div></div></td></tr></tbody>
+          <tbody id="ranking-body"><tr><td colspan="6"><div class="spinner"><div class="spin"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
-    <div class="section" style="padding-top:0">
-      <div class="section-title">Detalle aciertos</div>
-      <div id="detail-cards"><div class="spinner"><div class="spin"></div></div></div>
-    </div>
   </div>
 
-  <!-- BRACKET -->
-  <div class="page" id="page-bracket">
+  <div class="page" id="page-seleccion">
     <div class="section">
-      <div id="my-bracket-content"></div>
-    </div>
-    <div class="section" style="padding-top:0">
-      <div class="section-title" id="grupos-titulo">Los 12 grupos</div>
-      <div class="grupos-grid" id="grupos-grid"></div>
+      <div class="section-title">Mis picks</div>
+      <div class="seleccion-card">
+        <div id="saved-picks-display"></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:4px">
+          Elige los equipos que terminarán en <strong style="color:var(--gold)">1°</strong>,
+          <strong style="color:var(--silver)">2°</strong> y <strong style="color:var(--bronze)">3°</strong>.
+          Deben ser equipos distintos.
+        </p>
+        <div class="podio-slots">
+          <div class="slot s1"><div class="slot-medal">🥇</div><div class="slot-label">1° Campeón</div><select id="pick-1"><option value="">— Elige —</option></select></div>
+          <div class="slot s2"><div class="slot-medal">🥈</div><div class="slot-label">2° Subcampeón</div><select id="pick-2"><option value="">— Elige —</option></select></div>
+          <div class="slot s3"><div class="slot-medal">🥉</div><div class="slot-label">3° Lugar</div><select id="pick-3"><option value="">— Elige —</option></select></div>
+        </div>
+        <button class="submit-btn" id="submit-picks">💾 Guardar mi selección</button>
+        <div class="login-error" id="picks-error"></div>
+      </div>
+
+      <div style="margin-top:14px;background:var(--mid);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div class="section-title">Sistema de puntos</div>
+        <div class="pts-card">
+          <div class="pts-item"><div style="font-size:20px">🥇</div><div style="font-size:20px;font-weight:700;color:var(--gold);margin:4px 0">5 pts</div><div style="font-size:11px;color:var(--muted)">Aciertas el Campeón</div></div>
+          <div class="pts-item"><div style="font-size:20px">🥈</div><div style="font-size:20px;font-weight:700;color:var(--silver);margin:4px 0">3 pts</div><div style="font-size:11px;color:var(--muted)">Aciertas el 2°</div></div>
+          <div class="pts-item"><div style="font-size:20px">🥉</div><div style="font-size:20px;font-weight:700;color:var(--bronze);margin:4px 0">2 pts</div><div style="font-size:11px;color:var(--muted)">Aciertas el 3°</div></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center">Máx: 10 pts · Empate se decide por quien acertó el Campeón</div>
+      </div>
     </div>
   </div>
-
-
 </div>
 
 <!-- ADMIN MODAL -->
@@ -307,23 +248,12 @@
   <div class="modal">
     <button class="btn-close" id="close-modal">×</button>
     <h2>⚙ Panel Admin</h2>
-    <p>Carga los equipos que clasifican en cada fase. Los puntos se calculan automáticamente.</p>
-    <div class="form-group">
-      <label>Fase</label>
-      <select id="admin-fase">
-        <option value="octavos">Octavos de Final (1 pt c/u)</option>
-        <option value="cuartos">Cuartos de Final (2 pts c/u)</option>
-        <option value="semis">Semifinales (3 pts c/u)</option>
-        <option value="final">Final — Finalistas (5 pts c/u)</option>
-        <option value="campeon">Campeón (10 pts)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Equipo clasificado</label>
-      <select id="admin-equipo"><option value="">— Selecciona equipo —</option></select>
-    </div>
-    <button class="btn-gold" id="btn-agregar">Agregar clasificado</button>
-    <div id="clasificados-list" style="margin-top:16px"></div>
+    <p class="modal-sub">Registra el podio real cuando termine el torneo. Los puntos se calculan automáticamente.</p>
+    <div class="form-group"><label>🥇 Campeón real</label><select id="admin-1"><option value="">— Selecciona —</option></select></div>
+    <div class="form-group"><label>🥈 2° Lugar real</label><select id="admin-2"><option value="">— Selecciona —</option></select></div>
+    <div class="form-group"><label>🥉 3° Lugar real</label><select id="admin-3"><option value="">— Selecciona —</option></select></div>
+    <button class="btn-gold-modal" id="btn-guardar-resultado">Guardar resultado oficial</button>
+    <div class="resultado-box" id="resultado-actual" style="display:none"></div>
   </div>
 </div>
 
